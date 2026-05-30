@@ -35,8 +35,8 @@ export const QuestionSchema = CreateQuestionSchema.extend({
 
 export const CreateExerciseSchema = z.object({
   context: z.string().optional(),
-  questions: z.array(z.uuid()),
   category: z.enum(ExerciseCategory),
+  questions: z.array(z.uuid()),
 });
 
 export const ExerciseSchema = CreateExerciseSchema.extend({

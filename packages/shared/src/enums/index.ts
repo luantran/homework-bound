@@ -9,11 +9,21 @@ export const ExerciseCategory = {
   Reading: "reading",
 } as const;
 
+export const ExerciseCategoryValues = Object.values(ExerciseCategory) as [
+  string,
+  ...string[],
+];
+
 export const QuestionType = {
   MCQ: "mcq",
   Fill: "fill_in_gap",
   Short: "short_answer",
 } as const;
+
+export const QuestionTypeValues = Object.values(QuestionType) as [
+  string,
+  ...string[],
+];
 
 export const SchoolLevel = {
   Primary1: 1,
