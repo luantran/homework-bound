@@ -41,6 +41,7 @@ export const CreateExerciseSchema = z.object({
 
 export const ExerciseSchema = CreateExerciseSchema.extend({
   ...DbFieldsSchema.shape,
+  questions: z.array(QuestionSchema),
 });
 
 export const CreateWorksheetSchema = z.object({
@@ -51,4 +52,5 @@ export const CreateWorksheetSchema = z.object({
 
 export const WorksheetSchema = CreateWorksheetSchema.extend({
   ...DbFieldsSchema.shape,
+  exercises: z.array(ExerciseSchema),
 });
