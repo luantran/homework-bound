@@ -1,19 +1,24 @@
 {
   "name": "@homework-bound/api",
   "version": "1.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./index.ts",
+  "types": "./index.ts",
   "scripts": {
-    "build": "tsc"
+    "dev": "tsx --watch index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "devDependencies": {
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },
   "dependencies": {
     "@homework-bound/shared": "*",
+    "@hono/node-server": "^2.0.4",
     "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.23",
     "pg": "^8.21.0"
   }
 }
