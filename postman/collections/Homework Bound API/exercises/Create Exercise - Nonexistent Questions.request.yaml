@@ -1,0 +1,30 @@
+$kind: http-request
+name: "Create Exercise - Nonexistent Questions"
+method: POST
+url: "{{baseUrl}}/exercises"
+description: Attempt to create an exercise with valid UUIDs that don't exist in the database — expects 400
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "grammar",
+      "questions": ["{{$randomUUID}}"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400", function () {
+        pm.response.to.have.status(400);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });
+      pm.test("Error message references question IDs", function () {
+        const json = pm.response.json();
+        pm.expect(json.error).to.include("question");
+      });

@@ -1,0 +1,22 @@
+$kind: http-request
+name: "Create Exercise - Empty Body"
+method: POST
+url: "{{baseUrl}}/exercises"
+description: Attempt to create an exercise with an empty body — expects 400
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: "{}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400", function () {
+        pm.response.to.have.status(400);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });

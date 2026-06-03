@@ -1,0 +1,40 @@
+$kind: http-request
+name: "Create Exercise - Valid"
+method: POST
+url: "{{baseUrl}}/exercises"
+description: Create a new exercise with valid data
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "grammar",
+      "context": "This exercise covers basic grammar rules.",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response has exercise id", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+        pm.expect(json.id).to.be.a("string");
+      });
+      pm.test("Category matches request", function () {
+        const json = pm.response.json();
+        pm.expect(json.category).to.eql("grammar");
+      });
+      pm.test("Context matches request", function () {
+        const json = pm.response.json();
+        pm.expect(json.context).to.eql("This exercise covers basic grammar rules.");
+      });
+      pm.test("Save exercise ID to environment", function () {
+        const json = pm.response.json();
+        pm.environment.set("exerciseId", json.id);
+      });

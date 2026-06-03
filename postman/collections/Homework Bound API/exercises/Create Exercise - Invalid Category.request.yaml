@@ -1,0 +1,32 @@
+$kind: http-request
+name: "Create Exercise - Invalid Category"
+method: POST
+url: "{{baseUrl}}/exercises"
+description: Attempt to create an exercise with an invalid category value — expects 400
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "math",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400", function () {
+        pm.response.to.have.status(400);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });
+      pm.test("Error references category field", function () {
+        const json = pm.response.json();
+        const issues = json.error;
+        const categoryIssue = issues.find(i => i.path && i.path.includes("category"));
+        pm.expect(categoryIssue).to.exist;
+      });

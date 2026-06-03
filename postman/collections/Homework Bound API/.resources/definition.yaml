@@ -1,0 +1,8 @@
+$kind: collection
+name: Homework Bound API
+description: |-
+  API tests for the Homework Bound backend.
+
+  Covers the Exercises endpoints with happy path and validation error scenarios.
+
+  Run with the "Homework Bound - Local" environment.

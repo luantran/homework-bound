@@ -1,0 +1,32 @@
+$kind: http-request
+name: "Create Exercise - Invalid Questions (Non-UUID)"
+method: POST
+url: "{{baseUrl}}/exercises"
+description: Attempt to create an exercise with non-UUID question IDs — expects 400
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "conjugaison",
+      "questions": ["not-a-uuid", "also-not-a-uuid"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400", function () {
+        pm.response.to.have.status(400);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });
+      pm.test("Error references questions field", function () {
+        const json = pm.response.json();
+        const issues = json.error;
+        const questionsIssue = issues.find(i => i.path && i.path.includes("questions"));
+        pm.expect(questionsIssue).to.exist;
+      });

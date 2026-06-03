@@ -1,0 +1,30 @@
+$kind: http-request
+name: "Create Exercise - No Context (Optional Field)"
+method: POST
+url: "{{baseUrl}}/exercises"
+description: Create an exercise without the optional context field — should succeed with 201
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "reading",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201", function () {
+        pm.response.to.have.status(201);
+      });
+      pm.test("Response has exercise id", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+      });
+      pm.test("Context is null or undefined", function () {
+        const json = pm.response.json();
+        pm.expect(json.context == null).to.be.true;
+      });
