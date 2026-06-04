@@ -12,6 +12,7 @@ import {
   ExerciseCategoryValues,
   QuestionTypeValues,
 } from "@homework-bound/shared";
+import { relations } from "drizzle-orm";
 
 export const questionTypeEnum = pgEnum("question_type", QuestionTypeValues);
 export const exercisesCategoryEnum = pgEnum(
@@ -68,4 +69,24 @@ export const worksheets_exercises = pgTable(
     order: integer("order").notNull(),
   },
   (t) => [primaryKey({ columns: [t.worksheet_id, t.exercise_id] })],
+);
+
+// RELATIONS
+
+export const exercisesRelations = relations(exercises, ({ many }) => ({
+  exercises_questions: many(exercises_questions),
+}));
+
+export const exercisesQuestionsRelations = relations(
+  exercises_questions,
+  ({ one }) => ({
+    exercise: one(exercises, {
+      fields: [exercises_questions.exercise_id],
+      references: [exercises.id],
+    }),
+    question: one(questions, {
+      fields: [exercises_questions.question_id],
+      references: [questions.id],
+    }),
+  }),
 );

@@ -19,10 +19,11 @@ export async function getExercises() {
 
 export async function getExerciseByID(id: string) {
   try {
-    const [exercise] = await db
-      .select()
-      .from(exercises)
-      .where(eq(exercises.id, id));
+    const exercise = await db.query.exercises.findFirst({
+      where: eq(exercises.id, id),
+      with: { exercises_questions: { with: { question: true } } },
+    });
+
     if (!exercise) {
       throw new ExerciseNotFoundError();
     }
