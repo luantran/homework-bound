@@ -1,4 +1,4 @@
-name: Postman API tests
+name: API tests
 
 on:
   push:
@@ -39,6 +39,9 @@ jobs:
 
       - name: Run migrations
         run: npm run db:migrate
+
+      - name: Run Vitest tests
+        run: npm test -w @homework-bound/api
 
       - name: Start API server
         run: npm run dev -w @homework-bound/api &
