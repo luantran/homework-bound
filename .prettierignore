@@ -1,1 +1,3 @@
 packages/api/src/db/migrations
+postman/
+packages/api/postman/

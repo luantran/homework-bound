@@ -4,3 +4,10 @@ export class QuestionNotFoundError extends Error {
     this.name = "QuestionNotFoundError";
   }
 }
+
+export class ExerciseNotFoundError extends Error {
+  constructor(message = "Exercise ID does not exist") {
+    super(message);
+    this.name = "ExerciseNotFoundError";
+  }
+}

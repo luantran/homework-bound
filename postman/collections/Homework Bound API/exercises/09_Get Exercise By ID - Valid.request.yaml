@@ -1,0 +1,28 @@
+$kind: http-request
+name: 'Get Exercise By ID - Valid'
+method: GET
+url: '{{baseUrl}}/exercises/{{exerciseId}}'
+description: Retrieve a single exercise by a valid UUID that exists in the database
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response is an object", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an("object");
+      });
+      pm.test("Response has required fields", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+        pm.expect(json).to.have.property("created_by");
+        pm.expect(json).to.have.property("created_at");
+        pm.expect(json).to.have.property("updated_at");
+        pm.expect(json).to.have.property("category");
+      });
+      pm.test("ID matches the requested exercise", function () {
+        const json = pm.response.json();
+        pm.expect(json.id).to.eql(pm.environment.get("exerciseId"));
+      });

@@ -1,8 +1,8 @@
 import { CreateExercise } from "@homework-bound/shared";
-import { inArray } from "drizzle-orm";
+import { inArray, eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { exercises, questions, exercises_questions } from "../db/schema";
-import { QuestionNotFoundError } from "../errors";
+import { ExerciseNotFoundError, QuestionNotFoundError } from "../errors";
 import * as logger from "../logger";
 
 // placeholder until auth is implemented — will be replaced with the authenticated user's ID
@@ -13,6 +13,23 @@ export async function getExercises() {
     return await db.select().from(exercises);
   } catch (error) {
     logger.error(`Failed to get exercises: ${error}`);
+    throw error;
+  }
+}
+
+export async function getExerciseByID(id: string) {
+  try {
+    const [exercise] = await db
+      .select()
+      .from(exercises)
+      .where(eq(exercises.id, id));
+    if (!exercise) {
+      throw new ExerciseNotFoundError();
+    }
+    return exercise;
+  } catch (error) {
+    if (error instanceof ExerciseNotFoundError) throw error;
+    logger.error(`Failed to get exercise of ID ${id}: ${error}`);
     throw error;
   }
 }

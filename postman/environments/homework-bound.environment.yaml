@@ -1,7 +1,7 @@
 name: Homework Bound - Local
 values:
   - key: baseUrl
-    value: "http://localhost:3000"
+    value: 'http://localhost:3000'
   - key: exerciseId
-    value: ""
+    value: ''
 color: 120

@@ -1,9 +1,13 @@
 import { Hono } from "hono";
 import * as logger from "../logger";
 import { CreateExerciseSchema } from "@homework-bound/shared";
-import { ZodError } from "zod";
-import { QuestionNotFoundError } from "../errors";
-import { getExercises, createExercise } from "../services/exercises";
+import z, { ZodError } from "zod";
+import { ExerciseNotFoundError, QuestionNotFoundError } from "../errors";
+import {
+  getExercises,
+  createExercise,
+  getExerciseByID,
+} from "../services/exercises";
 const router = new Hono();
 
 router.get("/", async (context) => {
@@ -12,6 +16,22 @@ router.get("/", async (context) => {
     return context.json(result);
   } catch (e) {
     logger.error(`GET /exercises failed: ${e}`);
+    return context.json({ error: "Internal server error" }, 500);
+  }
+});
+
+router.get("/:id", async (context) => {
+  try {
+    const id = z.uuid().parse(context.req.param("id"));
+    const result = await getExerciseByID(id);
+    return context.json(result);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      return context.json({ error: e.issues }, 400);
+    } else if (e instanceof ExerciseNotFoundError) {
+      return context.json({ error: e.message }, 404);
+    }
+    logger.error(`GET /exercises/:id failed: ${e}`);
     return context.json({ error: "Internal server error" }, 500);
   }
 });
