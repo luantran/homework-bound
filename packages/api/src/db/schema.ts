@@ -90,3 +90,22 @@ export const exercisesQuestionsRelations = relations(
     }),
   }),
 );
+
+export const worksheetsRelations = relations(worksheets, ({ many }) => ({
+  worksheets_exercises: many(worksheets_exercises),
+}));
+
+// composite PK prevents the same exercise from being added to the same worksheet twice
+export const worksheetsExercisesRelations = relations(
+  worksheets_exercises,
+  ({ one }) => ({
+    worksheet: one(worksheets, {
+      fields: [worksheets_exercises.worksheet_id],
+      references: [worksheets.id],
+    }),
+    exercise: one(exercises, {
+      fields: [worksheets_exercises.exercise_id],
+      references: [exercises.id],
+    }),
+  }),
+);

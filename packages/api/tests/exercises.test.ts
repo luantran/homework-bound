@@ -1,18 +1,19 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import app from "../src/app";
 import { db } from "../src/db/client";
-import { exercises, exercises_questions } from "../src/db/schema";
+import { exercises, exercises_questions, questions } from "../src/db/schema";
 
 beforeEach(async () => {
   // delete in FK order to avoid constraint violations
   await db.delete(exercises_questions);
   await db.delete(exercises);
+  await db.delete(questions);
 });
 
 const validExercise = {
   category: "grammar",
   context: "This exercise covers basic grammar rules.",
-  questions: [],
+  questions: [] as string[],
 };
 
 async function createExercise(data = validExercise) {
@@ -144,6 +145,36 @@ describe("GET /exercises/:id", () => {
     const json = await res.json();
     expect(json.id).toBe(created.id);
     expect(json.category).toBe("grammar");
+  });
+
+  it("returns nested questions when the exercise has questions", async () => {
+    const questionRes = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "What is the French word for hello?",
+        answer: "Bonjour",
+        type: "mcq",
+        options: { a: "Bonjour", b: "Au revoir" },
+      }),
+    });
+    const question = await questionRes.json();
+
+    const created = await createExercise({
+      category: "grammar",
+      context: "Exercise with a question.",
+      questions: [question.id],
+    });
+
+    const res = await app.request(`/exercises/${created.id}`);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json).toHaveProperty("exercises_questions");
+    expect(json.exercises_questions).toHaveLength(1);
+    expect(json.exercises_questions[0].question.id).toBe(question.id);
+    expect(json.exercises_questions[0].question.prompt).toBe(
+      "What is the French word for hello?",
+    );
   });
 
   it("returns 404 for a valid UUID that does not exist", async () => {

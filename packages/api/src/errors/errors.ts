@@ -11,3 +11,10 @@ export class ExerciseNotFoundError extends Error {
     this.name = "ExerciseNotFoundError";
   }
 }
+
+export class WorksheetNotFoundError extends Error {
+  constructor(message = "Worksheet ID does not exist") {
+    super(message);
+    this.name = "WorksheetNotFoundError";
+  }
+}
