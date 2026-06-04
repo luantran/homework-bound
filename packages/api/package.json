@@ -5,6 +5,7 @@
   "types": "./index.ts",
   "scripts": {
     "dev": "dotenv -e ../../.env.local -- tsx --watch src/index.ts",
+    "test": "vitest run",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -12,7 +13,8 @@
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@homework-bound/shared": "*",
