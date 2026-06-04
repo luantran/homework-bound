@@ -5,6 +5,7 @@ import { exercises, questions, exercises_questions } from "../db/schema";
 import { QuestionNotFoundError } from "../errors";
 import * as logger from "../logger";
 
+// placeholder until auth is implemented — will be replaced with the authenticated user's ID
 const defaultID = "00000000-0000-0000-0000-000000000000";
 
 export async function getExercises() {
@@ -19,6 +20,8 @@ export async function getExercises() {
 export async function createExercise(data: CreateExercise) {
   try {
     return await db.transaction(async (tx) => {
+      // validate question IDs before inserting — FK violations give a cryptic DB error,
+      // this surfaces a clean, user-facing message instead
       const found = await tx
         .select()
         .from(questions)
@@ -42,7 +45,7 @@ export async function createExercise(data: CreateExercise) {
           data.questions.map((question_id, index) => ({
             exercise_id: exercise.id,
             question_id,
-            order: index,
+            order: index, // order is derived from the position in the submitted array
           })),
         );
       }

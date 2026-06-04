@@ -18,6 +18,7 @@ router.get("/", async (context) => {
 
 router.post("/", async (context) => {
   let body;
+  // JSON parsing is in its own try/catch so a malformed body returns 400 instead of 500
   try {
     body = await context.req.json();
   } catch {
