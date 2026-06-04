@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import app from "../src/app";
 import { db } from "../src/db/client";
-import { exercises, exercises_questions, questions } from "../src/db/schema";
+import { exercises, exercises_questions } from "../src/db/schema";
 
 beforeEach(async () => {
   // delete in FK order to avoid constraint violations
   await db.delete(exercises_questions);
   await db.delete(exercises);
-  await db.delete(questions);
 });
 
 const validExercise = {

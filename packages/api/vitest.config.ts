@@ -4,8 +4,6 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     globalSetup: "tests/setup.ts",
-    sequence: {
-      concurrent: false,
-    },
+    fileParallelism: true,
   },
 });

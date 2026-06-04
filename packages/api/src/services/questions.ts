@@ -19,9 +19,10 @@ export async function getQuestions() {
 
 export async function getQuestionByID(id: string) {
   try {
-    const question = await db.query.questions.findFirst({
-      where: eq(questions.id, id),
-    });
+    const [question] = await db
+      .select()
+      .from(questions)
+      .where(eq(questions.id, id));
     if (!question) {
       throw new QuestionNotFoundError("Question ID does not exist");
     }
@@ -82,9 +83,10 @@ export async function updateQuestionByID(id: string, data: CreateQuestion) {
 export async function deleteQuestionByID(id: string) {
   try {
     return await db.transaction(async (tx) => {
-      const question = await tx.query.questions.findFirst({
-        where: eq(questions.id, id),
-      });
+      const [question] = await tx
+        .select()
+        .from(questions)
+        .where(eq(questions.id, id));
       if (!question) {
         throw new QuestionNotFoundError("Question ID does not exist");
       }
