@@ -121,3 +121,25 @@ export async function updateExerciseByID(id: string, data: CreateExercise) {
     throw error;
   }
 }
+
+export async function deleteExerciseByID(id: string) {
+  try {
+    return await db.transaction(async (tx) => {
+      const [exercise] = await db
+        .select()
+        .from(exercises)
+        .where(eq(exercises.id, id));
+      if (!exercise) {
+        throw new ExerciseNotFoundError();
+      }
+      await tx
+        .delete(exercises_questions)
+        .where(eq(exercises_questions.exercise_id, id));
+      await tx.delete(exercises).where(eq(exercises.id, id));
+    });
+  } catch (error) {
+    if (error instanceof ExerciseNotFoundError) throw error;
+    logger.error(`Failed to delete exercise of ID ${id}: ${error}`);
+    throw error;
+  }
+}

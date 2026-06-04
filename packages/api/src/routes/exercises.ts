@@ -8,6 +8,7 @@ import {
   createExercise,
   getExerciseByID,
   updateExerciseByID,
+  deleteExerciseByID,
 } from "../services/exercises";
 const router = new Hono();
 
@@ -82,6 +83,22 @@ router.put("/:id", async (context) => {
       return context.json({ error: e.message }, 404);
     }
     logger.error(`PUT /exercise/:id failed: ${e}`);
+    return context.json({ error: "Internal server error" }, 500);
+  }
+});
+
+router.delete("/:id", async (context) => {
+  try {
+    const id = z.uuid().parse(context.req.param("id"));
+    await deleteExerciseByID(id);
+    return context.body(null, 204);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      return context.json({ error: e.issues }, 400);
+    } else if (e instanceof ExerciseNotFoundError) {
+      return context.json({ error: e.message }, 404);
+    }
+    logger.error(`DELETE /exercises/:id failed: ${e}`);
     return context.json({ error: "Internal server error" }, 500);
   }
 });
