@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import app from "../src/app";
 import { db } from "../src/db/client";
-import { questions } from "../src/db/schema";
+import { questions, exercises_questions } from "../src/db/schema";
 
 beforeEach(async () => {
-  // wipe questions before each test so tests don't depend on each other
+  // delete in FK order to avoid constraint violations
+  await db.delete(exercises_questions);
   await db.delete(questions);
 });
 
@@ -14,6 +15,15 @@ const validQuestion = {
   type: "mcq",
   options: { a: "Bonjour", b: "Au revoir", c: "Merci", d: "Oui" },
 };
+
+async function createQuestion(data = validQuestion) {
+  const res = await app.request("/questions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
 
 describe("GET /questions", () => {
   it("returns 200 with an empty array when no questions exist", async () => {
@@ -25,12 +35,7 @@ describe("GET /questions", () => {
   });
 
   it("returns 200 with all questions", async () => {
-    // seed a question first via the API
-    await app.request("/questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(validQuestion),
-    });
+    await createQuestion();
 
     const res = await app.request("/questions");
     expect(res.status).toBe(200);
@@ -43,13 +48,7 @@ describe("GET /questions", () => {
 
 describe("GET /questions/:id", () => {
   it("returns 200 with the question for a valid existing ID", async () => {
-    // create a question and capture its ID
-    const createRes = await app.request("/questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(validQuestion),
-    });
-    const created = await createRes.json();
+    const created = await createQuestion();
 
     const res = await app.request(`/questions/${created.id}`);
     expect(res.status).toBe(200);
@@ -64,7 +63,6 @@ describe("GET /questions/:id", () => {
     );
     expect(res.status).toBe(404);
     const json = await res.json();
-    expect(json).toHaveProperty("error");
     expect(json.error).toBe("Question ID does not exist");
   });
 
@@ -72,7 +70,177 @@ describe("GET /questions/:id", () => {
     const res = await app.request("/questions/not-a-valid-uuid");
     expect(res.status).toBe(400);
     const json = await res.json();
-    expect(json).toHaveProperty("error");
     expect(Array.isArray(json.error)).toBe(true);
+  });
+});
+
+describe("POST /questions", () => {
+  it("returns 201 with a valid body", async () => {
+    const res = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validQuestion),
+    });
+    expect(res.status).toBe(201);
+    const json = await res.json();
+    expect(json).toHaveProperty("id");
+    expect(json.prompt).toBe(validQuestion.prompt);
+    expect(json.type).toBe("mcq");
+  });
+
+  it("returns 201 without hint and options (optional fields)", async () => {
+    const res = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Fill in the blank: Je ___ français.",
+        answer: "parle",
+        type: "fill_in_gap",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const json = await res.json();
+    expect(json).toHaveProperty("id");
+  });
+
+  it("returns 400 for an empty body", async () => {
+    const res = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(Array.isArray(json.error)).toBe(true);
+  });
+
+  it("returns 400 when prompt is missing", async () => {
+    const res = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer: "Bonjour", type: "mcq" }),
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(Array.isArray(json.error)).toBe(true);
+  });
+
+  it("returns 400 for an invalid type", async () => {
+    const res = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Test",
+        answer: "Test",
+        type: "not-a-real-type",
+      }),
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(Array.isArray(json.error)).toBe(true);
+  });
+
+  it("returns 400 for a malformed JSON body", async () => {
+    const res = await app.request("/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "not valid json",
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toBe("Invalid JSON body");
+  });
+});
+
+describe("PUT /questions/:id", () => {
+  it("returns 200 with updated fields for a valid request", async () => {
+    const created = await createQuestion();
+
+    const res = await app.request(`/questions/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Updated prompt.",
+        answer: "Updated answer.",
+        type: "short_answer",
+      }),
+    });
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.id).toBe(created.id);
+    expect(json.prompt).toBe("Updated prompt.");
+    expect(json.type).toBe("short_answer");
+  });
+
+  it("returns 400 for a non-UUID ID", async () => {
+    const res = await app.request("/questions/not-a-valid-uuid", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validQuestion),
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(Array.isArray(json.error)).toBe(true);
+  });
+
+  it("returns 400 for an invalid body", async () => {
+    const created = await createQuestion();
+
+    const res = await app.request(`/questions/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "not-real-type" }),
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(Array.isArray(json.error)).toBe(true);
+  });
+
+  it("returns 404 for a valid UUID that does not exist", async () => {
+    const res = await app.request(
+      "/questions/00000000-0000-0000-0000-000000000000",
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(validQuestion),
+      },
+    );
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.error).toBe("Question ID does not exist");
+  });
+});
+
+describe("DELETE /questions/:id", () => {
+  it("returns 204 for a valid existing ID", async () => {
+    const created = await createQuestion();
+
+    const res = await app.request(`/questions/${created.id}`, {
+      method: "DELETE",
+    });
+    expect(res.status).toBe(204);
+
+    // confirm it no longer exists
+    const check = await app.request(`/questions/${created.id}`);
+    expect(check.status).toBe(404);
+  });
+
+  it("returns 400 for a non-UUID ID", async () => {
+    const res = await app.request("/questions/not-a-valid-uuid", {
+      method: "DELETE",
+    });
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(Array.isArray(json.error)).toBe(true);
+  });
+
+  it("returns 404 for a valid UUID that does not exist", async () => {
+    const res = await app.request(
+      "/questions/00000000-0000-0000-0000-000000000000",
+      { method: "DELETE" },
+    );
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.error).toBe("Question ID does not exist");
   });
 });

@@ -43,16 +43,8 @@ jobs:
       - name: Run Vitest tests
         run: npm test -w @homework-bound/api
 
-      - name: Start API server
-        run: npm run dev -w @homework-bound/api &
+      # - name: Start API server
+      #   run: npm run dev -w @homework-bound/api &
 
-      - name: Wait for server
-        run: npx wait-on http://localhost:3000
-
-      - name: Install Postman CLI
-        run: npm install -g postman-cli
-
-      - name: Run Postman collection
-        env:
-          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
-        run: postman collection run "postman/collections/Homework Bound API" --environment "postman/environments/homework-bound.environment.yaml"
+      # - name: Wait for server
+      #   run: npx wait-on http://localhost:3000
