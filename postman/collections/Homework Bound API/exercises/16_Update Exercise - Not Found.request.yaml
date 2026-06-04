@@ -1,0 +1,31 @@
+$kind: http-request
+name: "Update Exercise - Not Found"
+method: PUT
+url: "{{baseUrl}}/exercises/00000000-0000-0000-0000-000000000000"
+description: Attempt to update an exercise using a valid UUID that does not exist in the database
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "grammar",
+      "context": "Some context.",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 404", function () {
+        pm.response.to.have.status(404);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });
+      pm.test("Error message indicates exercise not found", function () {
+        const json = pm.response.json();
+        pm.expect(json.error).to.eql("Exercise ID does not exist");
+      });

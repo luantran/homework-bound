@@ -1,0 +1,38 @@
+$kind: http-request
+name: "Update Exercise - Invalid ID (Non-UUID)"
+method: PUT
+url: "{{baseUrl}}/exercises/not-a-valid-uuid"
+description: Attempt to update an exercise using a non-UUID string, which should fail Zod validation
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "grammar",
+      "context": "Some context.",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400", function () {
+        pm.response.to.have.status(400);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });
+      pm.test("Error is an array of Zod issues", function () {
+        const json = pm.response.json();
+        pm.expect(json.error).to.be.an("array");
+        pm.expect(json.error.length).to.be.greaterThan(0);
+      });
+      pm.test("Zod issue references the invalid UUID", function () {
+        const json = pm.response.json();
+        const issue = json.error[0];
+        pm.expect(issue).to.have.property("message");
+        pm.expect(issue.message.toLowerCase()).to.include("uuid");
+      });

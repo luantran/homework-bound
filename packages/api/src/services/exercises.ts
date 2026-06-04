@@ -74,3 +74,50 @@ export async function createExercise(data: CreateExercise) {
     throw error;
   }
 }
+
+export async function updateExerciseByID(id: string, data: CreateExercise) {
+  try {
+    return await db.transaction(async (tx) => {
+      // validate question IDs before inserting — FK violations give a cryptic DB error,
+      // this surfaces a clean, user-facing message instead
+      const found = await tx
+        .select()
+        .from(questions)
+        .where(inArray(questions.id, data.questions));
+      if (found.length !== data.questions.length) {
+        throw new QuestionNotFoundError();
+      }
+
+      const [exercise] = await tx
+        .update(exercises)
+        .set({
+          category: data["category"],
+          context: data["context"],
+          updated_at: new Date(),
+        })
+        .where(eq(exercises.id, id))
+        .returning();
+
+      if (!exercise) throw new ExerciseNotFoundError();
+
+      await tx
+        .delete(exercises_questions)
+        .where(eq(exercises_questions.exercise_id, id));
+
+      if (data.questions.length > 0) {
+        await tx.insert(exercises_questions).values(
+          data.questions.map((question_id, index) => ({
+            exercise_id: exercise.id,
+            question_id,
+            order: index,
+          })),
+        );
+      }
+
+      return exercise;
+    });
+  } catch (error) {
+    logger.error(`Failed to update exercise with ID ${id}: ${error}`);
+    throw error;
+  }
+}

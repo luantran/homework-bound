@@ -7,6 +7,7 @@ import {
   getExercises,
   createExercise,
   getExerciseByID,
+  updateExerciseByID,
 } from "../services/exercises";
 const router = new Hono();
 
@@ -55,6 +56,32 @@ router.post("/", async (context) => {
       return context.json({ error: e.message }, 400);
     }
     logger.error(`POST /exercises failed: ${e}`);
+    return context.json({ error: "Internal server error" }, 500);
+  }
+});
+
+router.put("/:id", async (context) => {
+  let body;
+  // JSON parsing is in its own try/catch so a malformed body returns 400 instead of 500
+  try {
+    body = await context.req.json();
+  } catch {
+    return context.json({ error: "Invalid JSON body" }, 400);
+  }
+  try {
+    const id = z.uuid().parse(context.req.param("id"));
+    const data = CreateExerciseSchema.parse(body);
+    const result = await updateExerciseByID(id, data);
+    return context.json(result, 200);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      return context.json({ error: e.issues }, 400);
+    } else if (e instanceof QuestionNotFoundError) {
+      return context.json({ error: e.message }, 400);
+    } else if (e instanceof ExerciseNotFoundError) {
+      return context.json({ error: e.message }, 404);
+    }
+    logger.error(`PUT /exercise/:id failed: ${e}`);
     return context.json({ error: "Internal server error" }, 500);
   }
 });

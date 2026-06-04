@@ -1,0 +1,36 @@
+$kind: http-request
+name: "Update Exercise - Valid"
+method: PUT
+url: "{{baseUrl}}/exercises/{{exerciseId}}"
+description: Update an existing exercise with valid data
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "reading",
+      "context": "Updated context for this exercise.",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response has exercise id", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+        pm.expect(json.id).to.eql(pm.environment.get("exerciseId"));
+      });
+      pm.test("Category was updated", function () {
+        const json = pm.response.json();
+        pm.expect(json.category).to.eql("reading");
+      });
+      pm.test("Context was updated", function () {
+        const json = pm.response.json();
+        pm.expect(json.context).to.eql("Updated context for this exercise.");
+      });

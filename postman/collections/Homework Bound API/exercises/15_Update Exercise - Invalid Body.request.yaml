@@ -1,0 +1,32 @@
+$kind: http-request
+name: "Update Exercise - Invalid Body"
+method: PUT
+url: "{{baseUrl}}/exercises/{{exerciseId}}"
+description: Attempt to update an exercise with an invalid category, which should fail Zod schema validation
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "not-a-real-category",
+      "context": "Some context.",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400", function () {
+        pm.response.to.have.status(400);
+      });
+      pm.test("Response has error field", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("error");
+      });
+      pm.test("Error is an array of Zod issues", function () {
+        const json = pm.response.json();
+        pm.expect(json.error).to.be.an("array");
+        pm.expect(json.error.length).to.be.greaterThan(0);
+      });

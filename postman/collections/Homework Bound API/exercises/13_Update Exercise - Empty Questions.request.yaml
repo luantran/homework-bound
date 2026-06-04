@@ -1,0 +1,31 @@
+$kind: http-request
+name: "Update Exercise - Empty Questions"
+method: PUT
+url: "{{baseUrl}}/exercises/{{exerciseId}}"
+description: Update an exercise with an empty questions array — confirms delete-then-reinsert handles zero questions without error
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "category": "reading",
+      "context": "Exercise with no questions.",
+      "questions": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200", function () {
+        pm.response.to.have.status(200);
+      });
+      pm.test("Response has exercise id", function () {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+      });
+      pm.test("Category was updated", function () {
+        const json = pm.response.json();
+        pm.expect(json.category).to.eql("reading");
+      });
