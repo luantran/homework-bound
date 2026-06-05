@@ -5,6 +5,7 @@
   "types": "./index.ts",
   "scripts": {
     "dev": "dotenv -e ../../.env.local -- tsx --watch src/index.ts",
+    "seed": "dotenv -e ../../.env.local -- tsx scripts/seed.ts",
     "test": "vitest run",
     "build": "tsc",
     "start": "node dist/index.js"

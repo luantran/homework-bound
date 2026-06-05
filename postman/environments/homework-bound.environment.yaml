@@ -4,4 +4,8 @@ values:
     value: 'http://localhost:3000'
   - key: exerciseId
     value: ''
+  - key: questionId
+    value: ''
+  - key: worksheetId
+    value: ''
 color: 120
