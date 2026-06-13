@@ -39,6 +39,13 @@ export const SchoolLevel = {
   Secondary5: 11,
 } as const;
 
+export const SchoolLevelValues = Object.fromEntries(
+  Object.entries(SchoolLevel).map(([key, val]) => [
+    val,
+    key.replace(/(\d+)/, " $1"),
+  ]),
+) as Record<number, string>;
+
 export const QuestionCategory = {
   Grammar: "grammar",
   Conjugaison: "conjugaison",

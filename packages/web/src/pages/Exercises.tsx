@@ -9,18 +9,15 @@ import {
   Spinner,
   Center,
 } from "@chakra-ui/react";
-import { SchoolLevel, type Exercise } from "@homework-bound/shared";
-
-const levelLabel = Object.fromEntries(
-  Object.entries(SchoolLevel).map(([key, val]) => [
-    val,
-    key.replace(/(\d+)/, " $1"),
-  ]),
-) as Record<number, string>;
+import { SchoolLevelValues, type Exercise } from "@homework-bound/shared";
+import ExerciseModal from "../components/ExerciseModal";
+import { useState } from "react";
 
 const formatLevel = (min?: number | null, max?: number | null) => {
   if (!min) return "—";
-  return max ? `${levelLabel[min]} - ${levelLabel[max]}` : levelLabel[min];
+  return max
+    ? `${SchoolLevelValues[min]} - ${SchoolLevelValues[max]}`
+    : SchoolLevelValues[min];
 };
 
 export default function Exercises() {
@@ -28,6 +25,8 @@ export default function Exercises() {
     queryKey: ["exercises"],
     queryFn: () => apiFetch<Exercise[]>("/exercises"),
   });
+
+  const [openExercise, setOpenExercise] = useState(false);
 
   if (isLoading)
     return (
@@ -40,7 +39,9 @@ export default function Exercises() {
     <Stack gap={4}>
       <Stack direction="row" justify="space-between" align="center">
         <Heading size="lg">Exercises</Heading>
-        <Button colorPalette="blue">New Exercise</Button>
+        <Button colorPalette="blue" onClick={() => setOpenExercise(true)}>
+          New Exercise
+        </Button>
       </Stack>
       <Table.Root>
         <Table.Header>
@@ -77,6 +78,10 @@ export default function Exercises() {
           ))}
         </Table.Body>
       </Table.Root>
+      <ExerciseModal
+        isOpen={openExercise}
+        onClose={() => setOpenExercise(false)}
+      />
     </Stack>
   );
 }
