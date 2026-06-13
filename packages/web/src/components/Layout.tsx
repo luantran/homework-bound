@@ -12,7 +12,6 @@ export default function Layout() {
         <Stack gap={1}>
           {[
             { to: "/", label: "Home" },
-            { to: "/questions", label: "Questions" },
             { to: "/exercises", label: "Exercises" },
             { to: "/worksheets", label: "Worksheets" },
           ].map(({ to, label }) => (

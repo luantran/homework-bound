@@ -1,15 +1,9 @@
 import { Heading, Stack, Card, Text, Spinner } from "@chakra-ui/react";
 import { apiFetch } from "../lib/api";
-import type { Exercise, Question, Worksheet } from "@homework-bound/shared";
+import type { Exercise, Worksheet } from "@homework-bound/shared";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
-  // TODO: add your three useQuery calls here
-  const { data: questions, isLoading: questionsLoading } = useQuery({
-    queryKey: ["questions"],
-    queryFn: () => apiFetch<Question[]>("/questions"),
-  });
-
   const { data: exercises, isLoading: exercisesLoading } = useQuery({
     queryKey: ["exercises"],
     queryFn: () => apiFetch<Exercise[]>("/exercises"),
@@ -20,6 +14,9 @@ export default function Home() {
     queryFn: () => apiFetch<Worksheet[]>("/worksheets"),
   });
 
+  const questionCount =
+    exercises?.reduce((sum, e) => sum + e.questions.length, 0) ?? 0;
+
   return (
     <Stack gap={6}>
       <Heading size="lg">Dashboard</Heading>
@@ -29,11 +26,11 @@ export default function Home() {
             <Text fontSize="sm" color="gray.500">
               Questions
             </Text>
-            {questionsLoading ? (
+            {exercisesLoading ? (
               <Spinner />
             ) : (
               <Text fontSize="3xl" fontWeight="bold">
-                {questions?.length ?? 0}
+                {questionCount}
               </Text>
             )}
           </Card.Body>

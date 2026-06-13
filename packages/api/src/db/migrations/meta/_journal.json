@@ -8,6 +8,20 @@
       "when": 1780111633096,
       "tag": "0000_many_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781216548259,
+      "tag": "0001_first_sebastian_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781218394619,
+      "tag": "0002_certain_mulholland_black",
+      "breakpoints": true
     }
   ]
 }

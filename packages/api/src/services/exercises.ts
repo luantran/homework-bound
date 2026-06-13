@@ -63,6 +63,9 @@ export async function createExercise(data: CreateExercise) {
           created_by: defaultID,
           category: data["category"],
           context: data["context"],
+          tags: data["tags"],
+          min_level: data["min_level"],
+          max_level: data["max_level"],
           updated_at: new Date(),
         })
         .returning();
@@ -103,6 +106,9 @@ export async function updateExerciseByID(id: string, data: CreateExercise) {
         .set({
           category: data["category"],
           context: data["context"],
+          tags: data["tags"],
+          min_level: data["min_level"],
+          max_level: data["max_level"],
           updated_at: new Date(),
         })
         .where(eq(exercises.id, id))

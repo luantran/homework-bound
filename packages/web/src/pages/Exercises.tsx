@@ -9,7 +9,19 @@ import {
   Spinner,
   Center,
 } from "@chakra-ui/react";
-import type { Exercise } from "@homework-bound/shared";
+import { SchoolLevel, type Exercise } from "@homework-bound/shared";
+
+const levelLabel = Object.fromEntries(
+  Object.entries(SchoolLevel).map(([key, val]) => [
+    val,
+    key.replace(/(\d+)/, " $1"),
+  ]),
+) as Record<number, string>;
+
+const formatLevel = (min?: number | null, max?: number | null) => {
+  if (!min) return "—";
+  return max ? `${levelLabel[min]} - ${levelLabel[max]}` : levelLabel[min];
+};
 
 export default function Exercises() {
   const { data, isLoading } = useQuery({
@@ -36,6 +48,7 @@ export default function Exercises() {
             <Table.ColumnHeader>Category</Table.ColumnHeader>
             <Table.ColumnHeader>Context</Table.ColumnHeader>
             <Table.ColumnHeader># of Questions</Table.ColumnHeader>
+            <Table.ColumnHeader>Level</Table.ColumnHeader>
             <Table.ColumnHeader>Actions</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
@@ -47,6 +60,9 @@ export default function Exercises() {
               </Table.Cell>
               <Table.Cell>{exercise.context ?? "—"}</Table.Cell>
               <Table.Cell>{exercise.questions.length}</Table.Cell>
+              <Table.Cell>
+                {formatLevel(exercise.min_level, exercise.max_level)}
+              </Table.Cell>
               <Table.Cell>
                 <Stack direction="row" gap={2}>
                   <Button size="sm" variant="outline">

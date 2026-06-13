@@ -27,6 +27,9 @@ export const CreateQuestionSchema = z.object({
   answer: z.string(),
   type: z.enum(QuestionType),
   options: z.record(z.string(), z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  min_level: z.number().int().min(1).max(11).optional(),
+  max_level: z.number().int().min(1).max(11).optional(),
 });
 
 export const QuestionSchema = CreateQuestionSchema.extend({
@@ -37,6 +40,9 @@ export const CreateExerciseSchema = z.object({
   context: z.string().optional(),
   category: z.enum(ExerciseCategory),
   questions: z.array(z.uuid()),
+  tags: z.array(z.string()).optional(),
+  min_level: z.number().int().min(1).max(11).optional(),
+  max_level: z.number().int().min(1).max(11).optional(),
 });
 
 export const ExerciseSchema = CreateExerciseSchema.extend({

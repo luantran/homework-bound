@@ -30,6 +30,9 @@ export const questions = pgTable("questions", {
   answer: text("answer").notNull(),
   options: jsonb("options"), // flexible shape — MCQ needs an array of choices, fill-in-the-blank needs none
   type: questionTypeEnum("type").notNull(),
+  tags: text("tags").array(),
+  min_level: integer("min_level"),
+  max_level: integer("max_level"),
 });
 
 export const exercises = pgTable("exercises", {
@@ -39,6 +42,9 @@ export const exercises = pgTable("exercises", {
   updated_at: timestamp("updated_at").notNull(),
   context: text("context"),
   category: exercisesCategoryEnum("category").notNull(),
+  tags: text("tags").array(),
+  min_level: integer("min_level"),
+  max_level: integer("max_level"),
 });
 
 // composite PK prevents the same question from being added to the same exercise twice

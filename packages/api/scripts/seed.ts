@@ -32,6 +32,9 @@ async function seed() {
         answer: "b",
         type: "mcq",
         options: { a: "chevals", b: "chevaux", c: "chevales", d: "cheval" },
+        tags: ["grammar.noms"],
+        min_level: 3,
+        max_level: 5,
       },
       {
         created_by: SEED_USER_ID,
@@ -40,6 +43,8 @@ async function seed() {
         hint: "Conjuguez au présent",
         answer: "vais",
         type: "fill_in_gap",
+        tags: ["conjugaison.présent"],
+        min_level: 3,
       },
       {
         created_by: SEED_USER_ID,
@@ -47,6 +52,9 @@ async function seed() {
         prompt: "Décrivez votre journée typique en 3 phrases.",
         answer: "open-ended",
         type: "short_answer",
+        tags: ["reading.réaction"],
+        min_level: 5,
+        max_level: 7,
       },
       {
         created_by: SEED_USER_ID,
@@ -56,6 +64,9 @@ async function seed() {
         answer: "b",
         type: "mcq",
         options: { a: "beaue", b: "belle", c: "beau", d: "beaux" },
+        tags: ["grammar.adjectifs"],
+        min_level: 4,
+        max_level: 6,
       },
       {
         created_by: SEED_USER_ID,
@@ -64,6 +75,8 @@ async function seed() {
         hint: "Conjuguez au présent",
         answer: "finissons",
         type: "fill_in_gap",
+        tags: ["conjugaison.présent"],
+        min_level: 4,
       },
       {
         created_by: SEED_USER_ID,
@@ -72,6 +85,9 @@ async function seed() {
         answer: "b",
         type: "mcq",
         options: { a: "gros", b: "petit", c: "long", d: "haut" },
+        tags: ["grammar.adjectifs"],
+        min_level: 2,
+        max_level: 4,
       },
       {
         created_by: SEED_USER_ID,
@@ -80,6 +96,8 @@ async function seed() {
         hint: "Conjuguez au présent",
         answer: "est",
         type: "fill_in_gap",
+        tags: ["conjugaison.être", "conjugaison.présent"],
+        min_level: 3,
       },
       {
         created_by: SEED_USER_ID,
@@ -87,6 +105,9 @@ async function seed() {
         prompt: "Décrivez votre animal préféré en 2 phrases.",
         answer: "open-ended",
         type: "short_answer",
+        tags: ["reading.réaction"],
+        min_level: 4,
+        max_level: 6,
       },
       {
         created_by: SEED_USER_ID,
@@ -96,6 +117,9 @@ async function seed() {
         answer: "c",
         type: "mcq",
         options: { a: "oeils", b: "oeilles", c: "yeux", d: "oeilx" },
+        tags: ["grammar.noms"],
+        min_level: 4,
+        max_level: 6,
       },
       {
         created_by: SEED_USER_ID,
@@ -104,6 +128,8 @@ async function seed() {
         hint: "Conjuguez au présent",
         answer: "ont",
         type: "fill_in_gap",
+        tags: ["conjugaison.avoir", "conjugaison.présent"],
+        min_level: 3,
       },
     ])
     .returning();
@@ -118,24 +144,36 @@ async function seed() {
         updated_at: now,
         category: "grammar",
         context: "Les pluriels irréguliers en français.",
+        tags: ["grammar.noms"],
+        min_level: 3,
+        max_level: 5,
       },
       {
         created_by: SEED_USER_ID,
         updated_at: now,
         category: "conjugaison",
         context: "Conjugaison des verbes du 2ème groupe au présent.",
+        tags: ["conjugaison.présent"],
+        min_level: 4,
+        max_level: 6,
       },
       {
         created_by: SEED_USER_ID,
         updated_at: now,
         category: "grammar",
         context: "Les adjectifs qualificatifs et leurs formes.",
+        tags: ["grammar.adjectifs"],
+        min_level: 4,
+        max_level: 7,
       },
       {
         created_by: SEED_USER_ID,
         updated_at: now,
         category: "reading",
         context: "Expression écrite — décrire des sujets du quotidien.",
+        tags: ["reading.réaction"],
+        min_level: 5,
+        max_level: 8,
       },
     ])
     .returning();

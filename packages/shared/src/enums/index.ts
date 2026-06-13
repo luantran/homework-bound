@@ -38,3 +38,49 @@ export const SchoolLevel = {
   Secondary4: 10,
   Secondary5: 11,
 } as const;
+
+export const QuestionCategory = {
+  Grammar: "grammar",
+  Conjugaison: "conjugaison",
+  Reading: "reading",
+} as const;
+
+export const QuestionCategoryValues = Object.values(QuestionCategory) as [
+  string,
+  ...string[],
+];
+
+export const QuestionSubCategory: Record<string, readonly string[]> = {
+  [QuestionCategory.Grammar]: [
+    "noms",
+    "adjectifs",
+    "déterminants",
+    "pronoms",
+    "verbe",
+    "prépositions",
+    "conjonctions",
+    "groupe sujet",
+    "groupe verbal",
+    "complément direct",
+    "complément indirect",
+    "complément de phrase",
+  ],
+  [QuestionCategory.Conjugaison]: [
+    "présent",
+    "être",
+    "avoir",
+    "passé composé",
+    "futur proche",
+    "futur simple",
+    "imparfait",
+    "conditionnel présent",
+    "plus-que-parfait",
+    "passé simple",
+  ],
+  [QuestionCategory.Reading]: [
+    "compréhension",
+    "interprétation",
+    "réaction",
+    "jugement",
+  ],
+};
