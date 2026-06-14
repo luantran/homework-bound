@@ -1,15 +1,5 @@
-import {
-  CloseButton,
-  Dialog,
-  createListCollection,
-  Portal,
-  Box,
-} from "@chakra-ui/react";
-import {
-  QuestionCategoryValues,
-  QuestionSubCategory,
-  type Exercise,
-} from "@homework-bound/shared";
+import { CloseButton, Dialog, Portal, Box } from "@chakra-ui/react";
+import { type Exercise } from "@homework-bound/shared";
 import { useState } from "react";
 import ExerciseLeftPanel from "./ExerciseLeftPanel";
 import ExerciseRightPanel from "./ExerciseRightPanel";
@@ -33,17 +23,7 @@ export default function ExerciseModal({
   const [selected, setSelected] = useState<string[]>([]);
   const [prompt, setPrompt] = useState("");
   const [context, setContext] = useState(exercise?.context || "");
-
-  const categoryCollection = createListCollection({
-    items: QuestionCategoryValues.map((v) => ({ label: v, value: v })),
-  });
-
-  const tagCollection = createListCollection({
-    items: (QuestionSubCategory[category] || []).map((v) => ({
-      label: v,
-      value: v,
-    })),
-  });
+  const [questions, setQuestions] = useState(exercise?.questions || []);
 
   return (
     <Dialog.Root
@@ -77,8 +57,6 @@ export default function ExerciseModal({
               overflow="hidden"
             >
               <ExerciseLeftPanel
-                categoryCollection={categoryCollection}
-                tagCollection={tagCollection}
                 category={category}
                 setCategory={setCategory}
                 tags={tags}
@@ -95,7 +73,10 @@ export default function ExerciseModal({
                 setContext={setContext}
               />
 
-              <ExerciseRightPanel questions={[]} />
+              <ExerciseRightPanel
+                questions={questions}
+                setQuestions={setQuestions}
+              />
             </Dialog.Body>
           </Dialog.Content>
         </Dialog.Positioner>

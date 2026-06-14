@@ -10,13 +10,15 @@ import {
   Slider,
   Textarea,
   Text,
-  type ListCollection,
+  createListCollection,
 } from "@chakra-ui/react";
-import { SchoolLevelValues } from "@homework-bound/shared";
+import {
+  QuestionCategoryValues,
+  QuestionSubCategory,
+  SchoolLevelValues,
+} from "@homework-bound/shared";
 
 type Props = {
-  categoryCollection: ListCollection<{ label: string; value: string }>;
-  tagCollection: ListCollection<{ label: string; value: string }>;
   category: string;
   setCategory: (v: string) => void;
   tags: string[];
@@ -34,8 +36,6 @@ type Props = {
 };
 
 export default function ExerciseLeftPanel({
-  categoryCollection,
-  tagCollection,
   category,
   setCategory,
   tags,
@@ -51,6 +51,17 @@ export default function ExerciseLeftPanel({
   context,
   setContext,
 }: Props) {
+  const categoryCollection = createListCollection({
+    items: QuestionCategoryValues.map((v) => ({ label: v, value: v })),
+  });
+
+  const tagCollection = createListCollection({
+    items: (QuestionSubCategory[category] || []).map((v) => ({
+      label: v,
+      value: v,
+    })),
+  });
+
   return (
     <Stack
       w="30%"
