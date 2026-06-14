@@ -1,4 +1,4 @@
-import { CloseButton, Dialog, Portal, Box } from "@chakra-ui/react";
+import { Button, CloseButton, Dialog, Portal, Box } from "@chakra-ui/react";
 import { type Exercise } from "@homework-bound/shared";
 import { useState } from "react";
 import ExerciseLeftPanel from "./ExerciseLeftPanel";
@@ -78,6 +78,12 @@ export default function ExerciseModal({
                 setQuestions={setQuestions}
               />
             </Dialog.Body>
+            <Dialog.Footer py={2} borderTopWidth="1px">
+              <Button variant="ghost" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorPalette="blue">Save</Button>
+            </Dialog.Footer>
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>
