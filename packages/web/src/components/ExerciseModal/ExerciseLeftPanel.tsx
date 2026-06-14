@@ -16,47 +16,25 @@ import {
   QuestionCategoryValues,
   QuestionSubCategory,
   SchoolLevelValues,
+  type CreateExercise,
 } from "@homework-bound/shared";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import type { ExerciseForm } from ".";
 
 type Props = {
-  category: string;
-  setCategory: (v: string) => void;
-  tags: string[];
-  setTags: (v: string[]) => void;
-  selected: string[];
-  setSelected: (v: string[]) => void;
-  minLevel: number | null;
-  setMinLevel: (v: number | null) => void;
-  maxLevel: number | null;
-  setMaxLevel: (v: number | null) => void;
-  prompt: string;
-  setPrompt: (v: string) => void;
-  context: string;
-  setContext: (v: string) => void;
+  form: ExerciseForm;
+  setForm: Dispatch<SetStateAction<ExerciseForm>>;
 };
 
-export default function ExerciseLeftPanel({
-  category,
-  setCategory,
-  tags,
-  setTags,
-  selected,
-  setSelected,
-  minLevel,
-  setMinLevel,
-  maxLevel,
-  setMaxLevel,
-  prompt,
-  setPrompt,
-  context,
-  setContext,
-}: Props) {
+export default function ExerciseLeftPanel({ form, setForm }: Props) {
+  const [selected, setSelected] = useState<string[]>([]);
+
   const categoryCollection = createListCollection({
     items: QuestionCategoryValues.map((v) => ({ label: v, value: v })),
   });
 
   const tagCollection = createListCollection({
-    items: (QuestionSubCategory[category] || []).map((v) => ({
+    items: (QuestionSubCategory[form.category ?? ""] || []).map((v) => ({
       label: v,
       value: v,
     })),
@@ -73,7 +51,6 @@ export default function ExerciseLeftPanel({
       overflowY="auto"
       minH={0}
     >
-      {/* Details: category, tags, school level */}
       <Accordion.Root
         collapsible
         multiple
@@ -93,10 +70,13 @@ export default function ExerciseLeftPanel({
                 <Field.Label>Category</Field.Label>
                 <Select.Root
                   collection={categoryCollection}
-                  value={[category]}
+                  value={form.category ? [form.category] : []}
                   onValueChange={(details) => {
-                    setCategory(details.value[0]);
-                    setTags([]);
+                    setForm((f) => ({
+                      ...f,
+                      category: details.value[0] as CreateExercise["category"],
+                      tags: [],
+                    }));
                     setSelected([]);
                   }}
                 >
@@ -128,13 +108,13 @@ export default function ExerciseLeftPanel({
                 <Field.Label>Tags</Field.Label>
                 <HStack w="full">
                   <Select.Root
-                    key={category}
+                    key={form.category}
                     collection={tagCollection}
                     value={selected}
                     onValueChange={(details) => setSelected(details.value)}
                     multiple
                     flex={1}
-                    disabled={!category}
+                    disabled={!form.category}
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
@@ -162,7 +142,10 @@ export default function ExerciseLeftPanel({
                     size="sm"
                     disabled={selected.length === 0}
                     onClick={() => {
-                      setTags([...new Set([...tags, ...selected])]);
+                      setForm((f) => ({
+                        ...f,
+                        tags: [...new Set([...(f.tags ?? []), ...selected])],
+                      }));
                       setSelected([]);
                     }}
                   >
@@ -170,13 +153,15 @@ export default function ExerciseLeftPanel({
                   </Button>
                 </HStack>
                 <TagsInput.Root
-                  value={tags}
-                  onValueChange={(details) => setTags(details.value)}
+                  value={form.tags ?? []}
+                  onValueChange={(details) =>
+                    setForm((f) => ({ ...f, tags: details.value }))
+                  }
                   mt={2}
                   w="full"
                 >
                   <TagsInput.Control borderWidth={0} p={0}>
-                    {tags.length === 0 && (
+                    {(form.tags ?? []).length === 0 && (
                       <Text fontSize="sm" color="gray.400">
                         No tags selected
                       </Text>
@@ -191,20 +176,23 @@ export default function ExerciseLeftPanel({
                 <Stack w="full">
                   <HStack justify="space-between">
                     <Text fontSize="sm">
-                      {SchoolLevelValues[minLevel ?? 2]}
+                      {SchoolLevelValues[form.min_level ?? 2]}
                     </Text>
                     <Text fontSize="sm">
-                      {SchoolLevelValues[maxLevel ?? 4]}
+                      {SchoolLevelValues[form.max_level ?? 4]}
                     </Text>
                   </HStack>
                   <Slider.Root
                     min={1}
                     max={11}
                     step={1}
-                    value={[minLevel ?? 2, maxLevel ?? 4]}
+                    value={[form.min_level ?? 2, form.max_level ?? 4]}
                     onValueChange={(details) => {
-                      setMinLevel(details.value[0]);
-                      setMaxLevel(details.value[1]);
+                      setForm((f) => ({
+                        ...f,
+                        min_level: details.value[0],
+                        max_level: details.value[1],
+                      }));
                     }}
                     thumbCollisionBehavior="push"
                     pb={8}
@@ -230,7 +218,6 @@ export default function ExerciseLeftPanel({
         </Accordion.Item>
       </Accordion.Root>
 
-      {/* Prompt + Context */}
       <Accordion.Root
         collapsible
         multiple
@@ -248,8 +235,10 @@ export default function ExerciseLeftPanel({
             <Stack px={3} pb={3}>
               <Textarea
                 placeholder="Prompt..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                value={form.prompt ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, prompt: e.target.value }))
+                }
               />
             </Stack>
           </Accordion.ItemContent>
@@ -264,8 +253,10 @@ export default function ExerciseLeftPanel({
             <Stack px={3} pb={3}>
               <Textarea
                 placeholder="Context..."
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
+                value={form.context ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, context: e.target.value }))
+                }
                 rows={12}
               />
             </Stack>

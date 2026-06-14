@@ -27,6 +27,9 @@ export default function Exercises() {
   });
 
   const [openExercise, setOpenExercise] = useState(false);
+  const [editExercise, setEditExercise] = useState<Exercise | undefined>(
+    undefined,
+  );
 
   if (isLoading)
     return (
@@ -39,7 +42,13 @@ export default function Exercises() {
     <Stack gap={4}>
       <Stack direction="row" justify="space-between" align="center">
         <Heading size="lg">Exercises</Heading>
-        <Button colorPalette="blue" onClick={() => setOpenExercise(true)}>
+        <Button
+          colorPalette="blue"
+          onClick={() => {
+            setEditExercise(undefined);
+            setOpenExercise(true);
+          }}
+        >
           New Exercise
         </Button>
       </Stack>
@@ -66,7 +75,14 @@ export default function Exercises() {
               </Table.Cell>
               <Table.Cell>
                 <Stack direction="row" gap={2}>
-                  <Button size="sm" variant="outline">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditExercise(exercise);
+                      setOpenExercise(true);
+                    }}
+                  >
                     Edit
                   </Button>
                   <Button size="sm" variant="outline" colorPalette="red">
@@ -80,7 +96,11 @@ export default function Exercises() {
       </Table.Root>
       <ExerciseModal
         isOpen={openExercise}
-        onClose={() => setOpenExercise(false)}
+        onClose={() => {
+          setOpenExercise(false);
+          setEditExercise(undefined);
+        }}
+        exercise={editExercise}
       />
     </Stack>
   );

@@ -1,8 +1,27 @@
 import { Button, CloseButton, Dialog, Portal, Box } from "@chakra-ui/react";
-import { type Exercise } from "@homework-bound/shared";
+import {
+  type CreateExercise,
+  type Exercise,
+  type Question,
+} from "@homework-bound/shared";
 import { useState } from "react";
 import ExerciseLeftPanel from "./ExerciseLeftPanel";
 import ExerciseRightPanel from "./ExerciseRightPanel";
+
+export type ExerciseForm = Partial<Omit<CreateExercise, "questions">> & {
+  questions: Question[];
+  prompt?: string;
+};
+
+const toForm = (ex?: Exercise): ExerciseForm => ({
+  category: ex?.category,
+  min_level: ex?.min_level ?? undefined,
+  max_level: ex?.max_level ?? undefined,
+  tags: ex?.tags,
+  context: ex?.context,
+  questions: ex?.questions ?? [],
+  prompt: undefined,
+});
 
 export default function ExerciseModal({
   isOpen,
@@ -16,14 +35,15 @@ export default function ExerciseModal({
   const isEditMode = Boolean(exercise);
   const title = isEditMode ? "Edit Exercise" : "New Exercise";
 
-  const [category, setCategory] = useState(exercise?.category || "");
-  const [minLevel, setMinLevel] = useState(exercise?.min_level || null);
-  const [maxLevel, setMaxLevel] = useState(exercise?.max_level || null);
-  const [tags, setTags] = useState<string[]>(exercise?.tags || []);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [prompt, setPrompt] = useState("");
-  const [context, setContext] = useState(exercise?.context || "");
-  const [questions, setQuestions] = useState(exercise?.questions || []);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [form, setForm] = useState<ExerciseForm>(toForm(exercise));
+
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(true);
+    setForm(toForm(exercise));
+  } else if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false);
+  }
 
   return (
     <Dialog.Root
@@ -56,26 +76,12 @@ export default function ExerciseModal({
               minH={0}
               overflow="hidden"
             >
-              <ExerciseLeftPanel
-                category={category}
-                setCategory={setCategory}
-                tags={tags}
-                setTags={setTags}
-                selected={selected}
-                setSelected={setSelected}
-                minLevel={minLevel}
-                setMinLevel={setMinLevel}
-                maxLevel={maxLevel}
-                setMaxLevel={setMaxLevel}
-                prompt={prompt}
-                setPrompt={setPrompt}
-                context={context}
-                setContext={setContext}
-              />
-
+              <ExerciseLeftPanel form={form} setForm={setForm} />
               <ExerciseRightPanel
-                questions={questions}
-                setQuestions={setQuestions}
+                questions={form.questions}
+                setQuestions={(questions) =>
+                  setForm((f) => ({ ...f, questions }))
+                }
               />
             </Dialog.Body>
             <Dialog.Footer py={2} borderTopWidth="1px">
