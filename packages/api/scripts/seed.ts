@@ -13,128 +13,12 @@ async function seed() {
 
   await db.delete(schema.worksheets_exercises);
   await db.delete(schema.worksheets);
-  await db.delete(schema.exercises_questions);
-  await db.delete(schema.exercises);
   await db.delete(schema.questions);
+  await db.delete(schema.exercises);
 
   console.log("Database cleared. Seeding...");
 
   const now = new Date();
-
-  const insertedQuestions = await db
-    .insert(schema.questions)
-    .values([
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Quel est le pluriel de 'cheval'?",
-        hint: "Pensez aux animaux",
-        answer: "b",
-        type: "mcq",
-        options: { A: "chevals", B: "chevaux", C: "chevales", D: "cheval" },
-        tags: ["grammar.noms"],
-        min_level: 3,
-        max_level: 5,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Je ___ (aller) à l'école tous les jours.",
-        hint: "Conjuguez au présent",
-        answer: "vais",
-        type: "fill_in_gap",
-        tags: ["conjugaison.présent"],
-        min_level: 3,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Décrivez votre journée typique en 3 phrases.",
-        answer: "open-ended",
-        type: "short_answer",
-        tags: ["reading.réaction"],
-        min_level: 5,
-        max_level: 7,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Quel est le féminin de 'beau'?",
-        hint: "Pensez à l'adjectif",
-        answer: "b",
-        type: "mcq",
-        options: { A: "beaue", B: "belle", C: "beau", D: "beaux" },
-        tags: ["grammar.adjectifs"],
-        min_level: 4,
-        max_level: 6,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Nous ___ (finir) nos devoirs avant le dîner.",
-        hint: "Conjuguez au présent",
-        answer: "finissons",
-        type: "fill_in_gap",
-        tags: ["conjugaison.présent"],
-        min_level: 4,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Quel est le contraire de 'grand'?",
-        answer: "b",
-        type: "mcq",
-        options: { A: "gros", B: "petit", C: "long", D: "haut" },
-        tags: ["grammar.adjectifs"],
-        min_level: 2,
-        max_level: 4,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Elle ___ (être) très contente aujourd'hui.",
-        hint: "Conjuguez au présent",
-        answer: "est",
-        type: "fill_in_gap",
-        tags: ["conjugaison.être", "conjugaison.présent"],
-        min_level: 3,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Décrivez votre animal préféré en 2 phrases.",
-        answer: "open-ended",
-        type: "short_answer",
-        tags: ["reading.réaction"],
-        min_level: 4,
-        max_level: 6,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Quel est le pluriel de 'oeil'?",
-        hint: "Pluriel irrégulier",
-        answer: "c",
-        type: "mcq",
-        options: { A: "oeils", B: "oeilles", C: "yeux", D: "oeilx" },
-        tags: ["grammar.noms"],
-        min_level: 4,
-        max_level: 6,
-      },
-      {
-        created_by: SEED_USER_ID,
-        updated_at: now,
-        prompt: "Ils ___ (avoir) beaucoup de devoirs ce soir.",
-        hint: "Conjuguez au présent",
-        answer: "ont",
-        type: "fill_in_gap",
-        tags: ["conjugaison.avoir", "conjugaison.présent"],
-        min_level: 3,
-      },
-    ])
-    .returning();
-
-  console.log(`Inserted ${insertedQuestions.length} questions`);
 
   const insertedExercises = await db
     .insert(schema.exercises)
@@ -185,60 +69,131 @@ async function seed() {
 
   console.log(`Inserted ${insertedExercises.length} exercises`);
 
-  await db.insert(schema.exercises_questions).values([
+  await db.insert(schema.questions).values([
+    // Exercise 0 — grammar (plurals)
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[0].id,
-      question_id: insertedQuestions[0].id,
-      order: 1,
+      prompt: "Quel est le pluriel de 'cheval'?",
+      hint: "Pensez aux animaux",
+      answer: "B",
+      type: "mcq",
+      options: { A: "chevals", B: "chevaux", C: "chevales", D: "cheval" },
+      tags: ["grammar.noms"],
+      min_level: 3,
+      max_level: 5,
     },
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[0].id,
-      question_id: insertedQuestions[8].id,
-      order: 2,
+      prompt: "Quel est le pluriel de 'oeil'?",
+      hint: "Pluriel irrégulier",
+      answer: "C",
+      type: "mcq",
+      options: { A: "oeils", B: "oeilles", C: "yeux", D: "oeilx" },
+      tags: ["grammar.noms"],
+      min_level: 4,
+      max_level: 6,
     },
+    // Exercise 1 — conjugaison
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[1].id,
-      question_id: insertedQuestions[1].id,
-      order: 1,
+      prompt: "Je ___ (aller) à l'école tous les jours.",
+      hint: "Conjuguez au présent",
+      answer: "vais",
+      type: "fill_in_gap",
+      tags: ["conjugaison.présent"],
+      min_level: 3,
     },
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[1].id,
-      question_id: insertedQuestions[4].id,
-      order: 2,
+      prompt: "Nous ___ (finir) nos devoirs avant le dîner.",
+      hint: "Conjuguez au présent",
+      answer: "finissons",
+      type: "fill_in_gap",
+      tags: ["conjugaison.présent"],
+      min_level: 4,
     },
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[1].id,
-      question_id: insertedQuestions[6].id,
-      order: 3,
+      prompt: "Elle ___ (être) très contente aujourd'hui.",
+      hint: "Conjuguez au présent",
+      answer: "est",
+      type: "fill_in_gap",
+      tags: ["conjugaison.être", "conjugaison.présent"],
+      min_level: 3,
     },
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[1].id,
-      question_id: insertedQuestions[9].id,
-      order: 4,
+      prompt: "Ils ___ (avoir) beaucoup de devoirs ce soir.",
+      hint: "Conjuguez au présent",
+      answer: "ont",
+      type: "fill_in_gap",
+      tags: ["conjugaison.avoir", "conjugaison.présent"],
+      min_level: 3,
     },
+    // Exercise 2 — grammar (adjectives)
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[2].id,
-      question_id: insertedQuestions[3].id,
-      order: 1,
+      prompt: "Quel est le féminin de 'beau'?",
+      hint: "Pensez à l'adjectif",
+      answer: "B",
+      type: "mcq",
+      options: { A: "beaue", B: "belle", C: "beau", D: "beaux" },
+      tags: ["grammar.adjectifs"],
+      min_level: 4,
+      max_level: 6,
     },
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[2].id,
-      question_id: insertedQuestions[5].id,
-      order: 2,
+      prompt: "Quel est le contraire de 'grand'?",
+      answer: "B",
+      type: "mcq",
+      options: { A: "gros", B: "petit", C: "long", D: "haut" },
+      tags: ["grammar.adjectifs"],
+      min_level: 2,
+      max_level: 4,
+    },
+    // Exercise 3 — reading
+    {
+      created_by: SEED_USER_ID,
+      updated_at: now,
+      exercise_id: insertedExercises[3].id,
+      prompt: "Décrivez votre journée typique en 3 phrases.",
+      answer: "open-ended",
+      type: "short_answer",
+      tags: ["reading.réaction"],
+      min_level: 5,
+      max_level: 7,
     },
     {
+      created_by: SEED_USER_ID,
+      updated_at: now,
       exercise_id: insertedExercises[3].id,
-      question_id: insertedQuestions[2].id,
-      order: 1,
-    },
-    {
-      exercise_id: insertedExercises[3].id,
-      question_id: insertedQuestions[7].id,
-      order: 2,
+      prompt: "Décrivez votre animal préféré en 2 phrases.",
+      answer: "open-ended",
+      type: "short_answer",
+      tags: ["reading.réaction"],
+      min_level: 4,
+      max_level: 6,
     },
   ]);
 
-  console.log("Linked questions to exercises");
+  console.log("Inserted 10 questions");
 
   const insertedWorksheets = await db
     .insert(schema.worksheets)

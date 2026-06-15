@@ -6,6 +6,7 @@ import {
   HStack,
   Input,
   Portal,
+  RadioGroup,
   Select,
   Stack,
   Text,
@@ -130,6 +131,7 @@ export default function QuestionDialog({
                   <Field.Root flex={1} required>
                     <Field.Label>Answer</Field.Label>
                     <Input
+                      disabled={form.type === "mcq"}
                       value={form.answer ?? ""}
                       onChange={(e) =>
                         setForm({ ...form, answer: e.target.value })
@@ -141,29 +143,57 @@ export default function QuestionDialog({
 
                 {form.type === "mcq" && (
                   <Stack gap={2}>
-                    <Text fontSize="sm" fontWeight="medium">
-                      Options
-                    </Text>
-                    {["A", "B", "C", "D", "E"].map((key) => (
-                      <HStack key={key}>
-                        <Text w="20px" fontSize="sm" fontWeight="bold">
-                          {key}
-                        </Text>
-                        <Input
-                          value={form.options?.[key] || ""}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              options: {
-                                ...form.options,
-                                [key]: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder={`Option ${key}...`}
-                        />
-                      </HStack>
-                    ))}
+                    <HStack>
+                      <Text fontSize="sm" fontWeight="medium" flex={1}>
+                        Options
+                      </Text>
+                      <Text
+                        fontSize="sm"
+                        fontWeight="medium"
+                        w="100px"
+                        textAlign="center"
+                      >
+                        Select answer
+                      </Text>
+                    </HStack>
+                    <RadioGroup.Root
+                      value={form.answer ?? ""}
+                      onValueChange={(d) =>
+                        setForm({ ...form, answer: d.value ?? undefined })
+                      }
+                    >
+                      <Stack gap={2}>
+                        {["A", "B", "C", "D", "E"].map((key) => (
+                          <HStack key={key}>
+                            <Text w="20px" fontSize="sm" fontWeight="bold">
+                              {key}
+                            </Text>
+                            <Input
+                              value={form.options?.[key] || ""}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  options: {
+                                    ...form.options,
+                                    [key]: e.target.value,
+                                  },
+                                })
+                              }
+                              placeholder={`Option ${key}...`}
+                            />
+                            <HStack w="100px" justify="center">
+                              <RadioGroup.Item
+                                value={key}
+                                disabled={!form.options?.[key]}
+                              >
+                                <RadioGroup.ItemHiddenInput />
+                                <RadioGroup.ItemIndicator />
+                              </RadioGroup.Item>
+                            </HStack>
+                          </HStack>
+                        ))}
+                      </Stack>
+                    </RadioGroup.Root>
                   </Stack>
                 )}
               </Stack>

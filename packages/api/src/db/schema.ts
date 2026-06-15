@@ -20,21 +20,6 @@ export const exercisesCategoryEnum = pgEnum(
   ExerciseCategoryValues,
 );
 
-export const questions = pgTable("questions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  created_by: uuid("created_by").notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull(),
-  updated_at: timestamp("updated_at").notNull(),
-  prompt: text("prompt").notNull(),
-  hint: text("hint"),
-  answer: text("answer").notNull(),
-  options: jsonb("options"), // flexible shape — MCQ needs an array of choices, fill-in-the-blank needs none
-  type: questionTypeEnum("type").notNull(),
-  tags: text("tags").array(),
-  min_level: integer("min_level"),
-  max_level: integer("max_level"),
-});
-
 export const exercises = pgTable("exercises", {
   id: uuid("id").primaryKey().defaultRandom(),
   created_by: uuid("created_by").notNull(),
@@ -48,16 +33,23 @@ export const exercises = pgTable("exercises", {
   max_level: integer("max_level"),
 });
 
-// composite PK prevents the same question from being added to the same exercise twice
-export const exercises_questions = pgTable(
-  "exercises_questions",
-  {
-    exercise_id: uuid("exercise_id").references(() => exercises.id),
-    question_id: uuid("question_id").references(() => questions.id),
-    order: integer("order").notNull(),
-  },
-  (t) => [primaryKey({ columns: [t.exercise_id, t.question_id] })],
-);
+export const questions = pgTable("questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  created_by: uuid("created_by").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").notNull(),
+  exercise_id: uuid("exercise_id")
+    .references(() => exercises.id)
+    .notNull(),
+  prompt: text("prompt").notNull(),
+  hint: text("hint"),
+  answer: text("answer").notNull(),
+  options: jsonb("options"),
+  type: questionTypeEnum("type").notNull(),
+  tags: text("tags").array(),
+  min_level: integer("min_level"),
+  max_level: integer("max_level"),
+});
 
 export const worksheets = pgTable("worksheets", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -81,28 +73,21 @@ export const worksheets_exercises = pgTable(
 // RELATIONS
 
 export const exercisesRelations = relations(exercises, ({ many }) => ({
-  exercises_questions: many(exercises_questions),
+  questions: many(questions),
+  worksheets_exercises: many(worksheets_exercises),
 }));
 
-export const exercisesQuestionsRelations = relations(
-  exercises_questions,
-  ({ one }) => ({
-    exercise: one(exercises, {
-      fields: [exercises_questions.exercise_id],
-      references: [exercises.id],
-    }),
-    question: one(questions, {
-      fields: [exercises_questions.question_id],
-      references: [questions.id],
-    }),
+export const questionsRelations = relations(questions, ({ one }) => ({
+  exercise: one(exercises, {
+    fields: [questions.exercise_id],
+    references: [exercises.id],
   }),
-);
+}));
 
 export const worksheetsRelations = relations(worksheets, ({ many }) => ({
   worksheets_exercises: many(worksheets_exercises),
 }));
 
-// composite PK prevents the same exercise from being added to the same worksheet twice
 export const worksheetsExercisesRelations = relations(
   worksheets_exercises,
   ({ one }) => ({

@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import * as logger from "../logger";
 import { CreateExerciseSchema } from "@homework-bound/shared";
 import z, { ZodError } from "zod";
-import { ExerciseNotFoundError, QuestionNotFoundError } from "../errors";
+import { ExerciseNotFoundError } from "../errors";
 import {
   getExercises,
   createExercise,
@@ -53,8 +53,6 @@ router.post("/", async (context) => {
   } catch (e) {
     if (e instanceof ZodError) {
       return context.json({ error: e.issues }, 400);
-    } else if (e instanceof QuestionNotFoundError) {
-      return context.json({ error: e.message }, 400);
     }
     logger.error(`POST /exercises failed: ${e}`);
     return context.json({ error: "Internal server error" }, 500);
@@ -77,8 +75,6 @@ router.put("/:id", async (context) => {
   } catch (e) {
     if (e instanceof ZodError) {
       return context.json({ error: e.issues }, 400);
-    } else if (e instanceof QuestionNotFoundError) {
-      return context.json({ error: e.message }, 400);
     } else if (e instanceof ExerciseNotFoundError) {
       return context.json({ error: e.message }, 404);
     }
