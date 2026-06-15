@@ -40,7 +40,7 @@ export const CreateExerciseSchema = z.object({
   context: z.string().optional(),
   prompt: z.string().optional(),
   category: z.enum(ExerciseCategory),
-  questions: z.array(z.uuid()),
+  questions: z.array(CreateQuestionSchema),
   tags: z.array(z.string()).optional(),
   min_level: z.number().int().min(1).max(11).optional(),
   max_level: z.number().int().min(1).max(11).optional(),

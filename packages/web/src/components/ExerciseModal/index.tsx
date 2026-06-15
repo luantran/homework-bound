@@ -7,6 +7,8 @@ import {
 import { useState } from "react";
 import ExerciseLeftPanel from "./ExerciseLeftPanel";
 import ExerciseRightPanel from "./ExerciseRightPanel";
+import { createExercise, updateExercise } from "../../lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type ExerciseForm = Partial<Omit<CreateExercise, "questions">> & {
   questions: Question[];
@@ -43,6 +45,39 @@ export default function ExerciseModal({
   } else if (!isOpen && prevIsOpen) {
     setPrevIsOpen(false);
   }
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (payload: CreateExercise) =>
+      exercise ? updateExercise(exercise.id, payload) : createExercise(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      onClose();
+    },
+  });
+
+  const onSave = () => {
+    const payload: CreateExercise = {
+      category: form.category!,
+      prompt: form.prompt ?? undefined,
+      context: form.context ?? undefined,
+      tags: form.tags ?? undefined,
+      min_level: form.min_level,
+      max_level: form.max_level,
+      questions: form.questions.map((q) => ({
+        prompt: q.prompt,
+        hint: q.hint ?? undefined,
+        answer: q.answer,
+        type: q.type,
+        options: q.options ?? undefined,
+        tags: q.tags ?? undefined,
+        min_level: q.min_level ?? undefined,
+        max_level: q.max_level ?? undefined,
+      })),
+    };
+    mutation.mutate(payload);
+  };
 
   return (
     <Dialog.Root
@@ -84,10 +119,20 @@ export default function ExerciseModal({
               />
             </Dialog.Body>
             <Dialog.Footer py={2} borderTopWidth="1px">
-              <Button variant="ghost" onClick={onClose}>
+              <Button
+                disabled={mutation.isPending}
+                variant="ghost"
+                onClick={onClose}
+              >
                 Cancel
               </Button>
-              <Button colorPalette="blue">Save</Button>
+              <Button
+                loading={mutation.isPending}
+                onClick={onSave}
+                colorPalette="blue"
+              >
+                Save
+              </Button>
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog.Positioner>

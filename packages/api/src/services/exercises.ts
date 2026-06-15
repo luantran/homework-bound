@@ -1,7 +1,7 @@
 import { CreateExercise } from "@homework-bound/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
-import { exercises, questions } from "../db/schema";
+import { exercises, questions, worksheets_exercises } from "../db/schema";
 import { ExerciseNotFoundError } from "../errors";
 import * as logger from "../logger";
 
@@ -121,6 +121,10 @@ export async function deleteExerciseByID(id: string) {
       if (!exercise) throw new ExerciseNotFoundError();
 
       await tx.delete(questions).where(eq(questions.exercise_id, id));
+      await tx
+        .delete(worksheets_exercises)
+        .where(eq(worksheets_exercises.exercise_id, id));
+
       await tx.delete(exercises).where(eq(exercises.id, id));
     });
   } catch (error) {
