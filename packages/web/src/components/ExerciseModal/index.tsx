@@ -10,7 +10,6 @@ import ExerciseRightPanel from "./ExerciseRightPanel";
 
 export type ExerciseForm = Partial<Omit<CreateExercise, "questions">> & {
   questions: Question[];
-  prompt?: string;
 };
 
 const toForm = (ex?: Exercise): ExerciseForm => ({
@@ -20,7 +19,7 @@ const toForm = (ex?: Exercise): ExerciseForm => ({
   tags: ex?.tags,
   context: ex?.context,
   questions: ex?.questions ?? [],
-  prompt: undefined,
+  prompt: ex?.prompt,
 });
 
 export default function ExerciseModal({

@@ -38,6 +38,7 @@ export const QuestionSchema = CreateQuestionSchema.extend({
 
 export const CreateExerciseSchema = z.object({
   context: z.string().optional(),
+  prompt: z.string().optional(),
   category: z.enum(ExerciseCategory),
   questions: z.array(z.uuid()),
   tags: z.array(z.string()).optional(),

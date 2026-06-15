@@ -41,6 +41,7 @@ export const exercises = pgTable("exercises", {
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").notNull(),
   context: text("context"),
+  prompt: text("prompt"),
   category: exercisesCategoryEnum("category").notNull(),
   tags: text("tags").array(),
   min_level: integer("min_level"),
