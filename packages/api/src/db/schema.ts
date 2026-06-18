@@ -7,6 +7,7 @@ import {
   pgEnum,
   integer,
   primaryKey,
+  serial,
 } from "drizzle-orm/pg-core";
 import {
   ExerciseCategoryValues,
@@ -25,6 +26,7 @@ export const exercises = pgTable("exercises", {
   created_by: uuid("created_by").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").notNull(),
+  exercise_number: serial("exercise_number").notNull(),
   context: text("context"),
   prompt: text("prompt"),
   category: exercisesCategoryEnum("category").notNull(),
@@ -56,6 +58,7 @@ export const worksheets = pgTable("worksheets", {
   created_by: uuid("created_by").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").notNull(),
+  worksheet_number: serial("worksheet_number").notNull(),
   title: text("title").notNull(),
   description: text("description"),
 });

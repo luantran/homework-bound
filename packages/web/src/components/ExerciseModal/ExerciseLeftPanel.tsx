@@ -166,7 +166,25 @@ export default function ExerciseLeftPanel({ form, setForm }: Props) {
                         No tags selected
                       </Text>
                     )}
-                    <TagsInput.Items />
+                    <TagsInput.Context>
+                      {(api) =>
+                        api.value.map((value, index) => (
+                          <TagsInput.Item
+                            key={index}
+                            index={index}
+                            value={value}
+                          >
+                            <TagsInput.ItemPreview>
+                              <TagsInput.ItemText>
+                                {value.split(".").at(-1)}
+                              </TagsInput.ItemText>
+                              <TagsInput.ItemDeleteTrigger />
+                            </TagsInput.ItemPreview>
+                            <TagsInput.ItemInput />
+                          </TagsInput.Item>
+                        ))
+                      }
+                    </TagsInput.Context>
                   </TagsInput.Control>
                 </TagsInput.Root>
               </Field.Root>

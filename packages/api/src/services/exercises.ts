@@ -11,7 +11,16 @@ const defaultID = "00000000-0000-0000-0000-000000000000";
 export async function getExercises() {
   try {
     return await db.query.exercises.findMany({
-      with: { questions: true },
+      with: {
+        questions: true,
+        worksheets_exercises: {
+          with: {
+            worksheet: {
+              columns: { id: true, worksheet_number: true, title: true },
+            },
+          },
+        },
+      },
     });
   } catch (error) {
     logger.error(`Failed to get exercises: ${error}`);
@@ -23,7 +32,16 @@ export async function getExerciseByID(id: string) {
   try {
     const exercise = await db.query.exercises.findFirst({
       where: eq(exercises.id, id),
-      with: { questions: true },
+      with: {
+        questions: true,
+        worksheets_exercises: {
+          with: {
+            worksheet: {
+              columns: { id: true, worksheet_number: true, title: true },
+            },
+          },
+        },
+      },
     });
     if (!exercise) throw new ExerciseNotFoundError();
     return exercise;

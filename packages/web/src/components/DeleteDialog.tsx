@@ -1,10 +1,11 @@
-import { Button, CloseButton, Dialog, Portal, Text } from "@chakra-ui/react";
+import { Button, CloseButton, Dialog, Portal } from "@chakra-ui/react";
+import type { ReactNode } from "react";
 
 type Props = {
   isOpen: boolean;
   isLoading: boolean;
   title?: string;
-  description?: string;
+  description?: ReactNode;
   onClose: () => void;
   onConfirm: () => void;
 };
@@ -34,9 +35,7 @@ export default function DeleteDialog({
                 <CloseButton size="sm" />
               </Dialog.CloseTrigger>
             </Dialog.Header>
-            <Dialog.Body>
-              <Text>{description}</Text>
-            </Dialog.Body>
+            <Dialog.Body>{description}</Dialog.Body>
             <Dialog.Footer>
               <Button variant="ghost" onClick={onClose}>
                 Cancel
