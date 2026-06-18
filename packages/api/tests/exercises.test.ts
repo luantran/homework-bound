@@ -1,19 +1,20 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import app from "../src/app";
 import { db } from "../src/db/client";
-import { exercises, exercises_questions, questions } from "../src/db/schema";
+import { exercises, questions, worksheets_exercises } from "../src/db/schema";
+import { CreateExercise } from "@homework-bound/shared";
 
 beforeEach(async () => {
   // delete in FK order to avoid constraint violations
-  await db.delete(exercises_questions);
-  await db.delete(exercises);
+  await db.delete(worksheets_exercises); // references both worksheets and exercises
   await db.delete(questions);
+  await db.delete(exercises);
 });
 
-const validExercise = {
+const validExercise: CreateExercise = {
   category: "grammar",
   context: "This exercise covers basic grammar rules.",
-  questions: [] as string[],
+  questions: [],
 };
 
 async function createExercise(data = validExercise) {
@@ -56,6 +57,8 @@ describe("POST /exercises", () => {
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json).toHaveProperty("id");
+    expect(json).toHaveProperty("exercise_number");
+    expect(typeof json.exercise_number).toBe("number");
     expect(json.category).toBe("grammar");
     expect(json.context).toBe(validExercise.context);
   });
@@ -107,13 +110,13 @@ describe("POST /exercises", () => {
     expect(Array.isArray(json.error)).toBe(true);
   });
 
-  it("returns 400 for non-UUID question IDs", async () => {
+  it("returns 400 when a question is missing required fields", async () => {
     const res = await app.request("/exercises", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         category: "grammar",
-        questions: ["not-a-uuid"],
+        questions: [{ prompt: "Missing answer and type" }],
       }),
     });
     expect(res.status).toBe(400);
@@ -121,18 +124,20 @@ describe("POST /exercises", () => {
     expect(Array.isArray(json.error)).toBe(true);
   });
 
-  it("returns 400 when question IDs do not exist", async () => {
+  it("returns 400 when a question has an invalid type", async () => {
     const res = await app.request("/exercises", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         category: "grammar",
-        questions: ["00000000-0000-0000-0000-000000000000"],
+        questions: [
+          { prompt: "What is bonjour?", answer: "Hello", type: "not-a-type" },
+        ],
       }),
     });
     expect(res.status).toBe(400);
     const json = await res.json();
-    expect(json.error).toBe("One or more question IDs do not exist");
+    expect(Array.isArray(json.error)).toBe(true);
   });
 });
 
@@ -145,36 +150,31 @@ describe("GET /exercises/:id", () => {
     const json = await res.json();
     expect(json.id).toBe(created.id);
     expect(json.category).toBe("grammar");
+    expect(json).toHaveProperty("exercise_number");
+    expect(json.worksheets_exercises).toEqual([]);
   });
 
   it("returns nested questions when the exercise has questions", async () => {
-    const questionRes = await app.request("/questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: "What is the French word for hello?",
-        answer: "Bonjour",
-        type: "mcq",
-        options: { a: "Bonjour", b: "Au revoir" },
-      }),
-    });
-    const question = await questionRes.json();
-
     const created = await createExercise({
       category: "grammar",
       context: "Exercise with a question.",
-      questions: [question.id],
+      questions: [
+        {
+          prompt: "What is the French word for hello?",
+          answer: "Bonjour",
+          type: "mcq",
+          options: { A: "Bonjour", B: "Au revoir" },
+        },
+      ],
     });
 
     const res = await app.request(`/exercises/${created.id}`);
     expect(res.status).toBe(200);
     const json = await res.json();
-    expect(json).toHaveProperty("exercises_questions");
-    expect(json.exercises_questions).toHaveLength(1);
-    expect(json.exercises_questions[0].question.id).toBe(question.id);
-    expect(json.exercises_questions[0].question.prompt).toBe(
-      "What is the French word for hello?",
-    );
+    expect(json).toHaveProperty("questions");
+    expect(json.questions).toHaveLength(1);
+    expect(json.questions[0].prompt).toBe("What is the French word for hello?");
+    expect(json.questions[0].answer).toBe("Bonjour");
   });
 
   it("returns 404 for a valid UUID that does not exist", async () => {
@@ -269,7 +269,7 @@ describe("PUT /exercises/:id", () => {
     expect(json.error).toBe("Exercise ID does not exist");
   });
 
-  it("returns 400 when question IDs do not exist", async () => {
+  it("returns 400 when a question is missing required fields", async () => {
     const created = await createExercise();
 
     const res = await app.request(`/exercises/${created.id}`, {
@@ -277,12 +277,12 @@ describe("PUT /exercises/:id", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         category: "grammar",
-        questions: ["00000000-0000-0000-0000-000000000000"],
+        questions: [{ prompt: "Missing answer and type" }],
       }),
     });
     expect(res.status).toBe(400);
     const json = await res.json();
-    expect(json.error).toBe("One or more question IDs do not exist");
+    expect(Array.isArray(json.error)).toBe(true);
   });
 });
 
