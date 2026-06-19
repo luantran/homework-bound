@@ -1,29 +1,44 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import app from "../src/app";
 import { db } from "../src/db/client";
-import { questions, exercises_questions } from "../src/db/schema";
+import { exercises, questions, worksheets_exercises } from "../src/db/schema";
 
 beforeEach(async () => {
-  // delete in FK order to avoid constraint violations
-  await db.delete(exercises_questions);
+  await db.delete(worksheets_exercises);
   await db.delete(questions);
+  await db.delete(exercises);
 });
+
+async function createExercise() {
+  const res = await app.request("/exercises", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: "grammar", questions: [] }),
+  });
+  return res.json();
+}
+
+async function createQuestion(exercise_id: string) {
+  const res = await app.request("/questions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: "What is the French word for hello?",
+      answer: "Bonjour",
+      type: "mcq",
+      options: { A: "Bonjour", B: "Au revoir", C: "Merci", D: "Oui" },
+      exercise_id,
+    }),
+  });
+  return res.json();
+}
 
 const validQuestion = {
   prompt: "What is the French word for hello?",
   answer: "Bonjour",
   type: "mcq",
-  options: { a: "Bonjour", b: "Au revoir", c: "Merci", d: "Oui" },
+  options: { A: "Bonjour", B: "Au revoir", C: "Merci", D: "Oui" },
 };
-
-async function createQuestion(data = validQuestion) {
-  const res = await app.request("/questions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return res.json();
-}
 
 describe("GET /questions", () => {
   it("returns 200 with an empty array when no questions exist", async () => {
@@ -35,7 +50,8 @@ describe("GET /questions", () => {
   });
 
   it("returns 200 with all questions", async () => {
-    await createQuestion();
+    const exercise = await createExercise();
+    await createQuestion(exercise.id);
 
     const res = await app.request("/questions");
     expect(res.status).toBe(200);
@@ -48,7 +64,8 @@ describe("GET /questions", () => {
 
 describe("GET /questions/:id", () => {
   it("returns 200 with the question for a valid existing ID", async () => {
-    const created = await createQuestion();
+    const exercise = await createExercise();
+    const created = await createQuestion(exercise.id);
 
     const res = await app.request(`/questions/${created.id}`);
     expect(res.status).toBe(200);
@@ -76,10 +93,11 @@ describe("GET /questions/:id", () => {
 
 describe("POST /questions", () => {
   it("returns 201 with a valid body", async () => {
+    const exercise = await createExercise();
     const res = await app.request("/questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(validQuestion),
+      body: JSON.stringify({ ...validQuestion, exercise_id: exercise.id }),
     });
     expect(res.status).toBe(201);
     const json = await res.json();
@@ -89,6 +107,7 @@ describe("POST /questions", () => {
   });
 
   it("returns 201 without hint and options (optional fields)", async () => {
+    const exercise = await createExercise();
     const res = await app.request("/questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -96,6 +115,7 @@ describe("POST /questions", () => {
         prompt: "Fill in the blank: Je ___ français.",
         answer: "parle",
         type: "fill_in_gap",
+        exercise_id: exercise.id,
       }),
     });
     expect(res.status).toBe(201);
@@ -154,7 +174,8 @@ describe("POST /questions", () => {
 
 describe("PUT /questions/:id", () => {
   it("returns 200 with updated fields for a valid request", async () => {
-    const created = await createQuestion();
+    const exercise = await createExercise();
+    const created = await createQuestion(exercise.id);
 
     const res = await app.request(`/questions/${created.id}`, {
       method: "PUT",
@@ -184,7 +205,8 @@ describe("PUT /questions/:id", () => {
   });
 
   it("returns 400 for an invalid body", async () => {
-    const created = await createQuestion();
+    const exercise = await createExercise();
+    const created = await createQuestion(exercise.id);
 
     const res = await app.request(`/questions/${created.id}`, {
       method: "PUT",
@@ -213,7 +235,8 @@ describe("PUT /questions/:id", () => {
 
 describe("DELETE /questions/:id", () => {
   it("returns 204 for a valid existing ID", async () => {
-    const created = await createQuestion();
+    const exercise = await createExercise();
+    const created = await createQuestion(exercise.id);
 
     const res = await app.request(`/questions/${created.id}`, {
       method: "DELETE",

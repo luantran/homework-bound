@@ -5,7 +5,6 @@ import {
   worksheets,
   worksheets_exercises,
   exercises,
-  exercises_questions,
   questions,
 } from "../src/db/schema";
 
@@ -13,9 +12,8 @@ beforeEach(async () => {
   // delete in FK order — fileParallelism is false so no race conditions with other test files
   await db.delete(worksheets_exercises);
   await db.delete(worksheets);
-  await db.delete(exercises_questions);
-  await db.delete(exercises);
   await db.delete(questions);
+  await db.delete(exercises);
 });
 
 const validWorksheet = {
@@ -79,6 +77,8 @@ describe("POST /worksheets", () => {
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json).toHaveProperty("id");
+    expect(json).toHaveProperty("worksheet_number");
+    expect(typeof json.worksheet_number).toBe("number");
     expect(json.title).toBe("Grammar Basics");
     expect(json.description).toBe(validWorksheet.description);
   });
@@ -155,30 +155,26 @@ describe("GET /worksheets/:id", () => {
     const json = await res.json();
     expect(json.id).toBe(created.id);
     expect(json.title).toBe("With Exercise");
+    expect(json).toHaveProperty("worksheet_number");
     expect(json).toHaveProperty("worksheets_exercises");
     expect(json.worksheets_exercises).toHaveLength(1);
     expect(json.worksheets_exercises[0].exercise.id).toBe(exercise.id);
   });
 
   it("returns nested exercises with their questions for the full chain", async () => {
-    const questionRes = await app.request("/questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: "What is the French word for hello?",
-        answer: "Bonjour",
-        type: "mcq",
-        options: { a: "Bonjour", b: "Au revoir" },
-      }),
-    });
-    const question = await questionRes.json();
-
     const exerciseRes = await app.request("/exercises", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         category: "grammar",
-        questions: [question.id],
+        questions: [
+          {
+            prompt: "What is the French word for hello?",
+            answer: "Bonjour",
+            type: "mcq",
+            options: { A: "Bonjour", B: "Au revoir" },
+          },
+        ],
       }),
     });
     const exercise = await exerciseRes.json();
@@ -194,8 +190,11 @@ describe("GET /worksheets/:id", () => {
     expect(json.worksheets_exercises).toHaveLength(1);
     const nestedExercise = json.worksheets_exercises[0].exercise;
     expect(nestedExercise.id).toBe(exercise.id);
-    expect(nestedExercise.exercises_questions).toHaveLength(1);
-    expect(nestedExercise.exercises_questions[0].question.id).toBe(question.id);
+    expect(nestedExercise.questions).toHaveLength(1);
+    expect(nestedExercise.questions[0].prompt).toBe(
+      "What is the French word for hello?",
+    );
+    expect(nestedExercise.questions[0].answer).toBe("Bonjour");
   });
 
   it("returns 404 for a valid UUID that does not exist", async () => {
