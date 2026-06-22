@@ -10,13 +10,17 @@ const defaultID = "00000000-0000-0000-0000-000000000000";
 
 export async function getWorksheets() {
   try {
-    return await db.query.worksheets.findMany({
+    const result = await db.query.worksheets.findMany({
       with: {
         worksheets_exercises: {
           with: { exercise: { with: { questions: true } } },
         },
       },
     });
+    return result.map((w) => ({
+      ...w,
+      exercises: w.worksheets_exercises.map((we) => we.exercise),
+    }));
   } catch (error) {
     logger.error(`Failed to get worksheets: ${error}`);
     throw error;
@@ -40,7 +44,11 @@ export async function getWorksheetByID(id: string) {
     if (!worksheet) {
       throw new WorksheetNotFoundError();
     }
-    return worksheet;
+    const { worksheets_exercises, ...rest } = worksheet;
+    return {
+      ...rest,
+      exercises: worksheets_exercises.map((we) => we.exercise),
+    };
   } catch (error) {
     if (error instanceof WorksheetNotFoundError) throw error;
     logger.error(`Failed to get worksheet of ID ${id}: ${error}`);

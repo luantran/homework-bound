@@ -43,7 +43,7 @@ export default function Worksheets() {
             <Table.Row key={worksheet.id}>
               <Table.Cell>{worksheet.title ?? "—"}</Table.Cell>
               <Table.Cell>{worksheet.description ?? "—"}</Table.Cell>
-              <Table.Cell>{worksheet.exercises.length}</Table.Cell>
+              <Table.Cell>{worksheet.exercises?.length ?? 0}</Table.Cell>
               <Table.Cell>
                 <Stack direction="row" gap={2}>
                   <Button size="sm" variant="outline">
