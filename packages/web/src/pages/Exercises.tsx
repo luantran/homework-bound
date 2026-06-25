@@ -27,7 +27,7 @@ const formatLevel = (min?: number | null, max?: number | null) => {
 };
 
 export default function Exercises() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["exercises"],
     queryFn: () => apiFetch<Exercise[]>("/exercises"),
   });
@@ -54,6 +54,13 @@ export default function Exercises() {
     return (
       <Center h="200px">
         <Spinner />
+      </Center>
+    );
+
+  if (isError)
+    return (
+      <Center h="200px">
+        <Text color="red.500">Failed to load exercises. Please try again.</Text>
       </Center>
     );
 
@@ -115,6 +122,13 @@ export default function Exercises() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
+          {data?.length === 0 && (
+            <Table.Row>
+              <Table.Cell colSpan={9} textAlign="center" color="gray.400">
+                No exercises yet
+              </Table.Cell>
+            </Table.Row>
+          )}
           {data?.map((exercise) => (
             <Table.Row key={exercise.id}>
               <Table.Cell data-testid="cell-number">

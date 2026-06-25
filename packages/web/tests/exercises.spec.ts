@@ -108,7 +108,9 @@ test.describe("Exercises page", () => {
     });
 
     test("shows empty state message when no exercises", async ({ page }) => {
-      await expect(page.getByText("No exercises yet")).toBeVisible();
+      await expect(
+        page.getByRole("row").filter({ hasText: "No exercises yet" }),
+      ).toBeVisible();
     });
   });
 
@@ -488,7 +490,10 @@ test.describe("Exercises page", () => {
         .getByRole("button", { name: "Delete" })
         .click();
 
-      await expect(page.getByRole("row")).toHaveCount(1);
+      await expect(page.getByRole("row")).toHaveCount(2);
+      await expect(
+        page.getByRole("row").filter({ hasText: "No exercises yet" }),
+      ).toBeVisible();
       await expect(
         page.getByRole("row").filter({ hasText: mockExercise.category }),
       ).not.toBeVisible();
@@ -531,6 +536,73 @@ test.describe("Exercises page", () => {
       await expect(
         deleteDialog.getByText("This cannot be undone."),
       ).toBeVisible();
+    });
+  });
+
+  test.describe("edge cases", () => {
+    test("shows error message when API fails", async ({ page }) => {
+      await page.route("http://localhost:3000/exercises", (route) =>
+        route.fulfill({
+          status: 500,
+          json: { message: "Internal server error" },
+        }),
+      );
+      await page.goto("/exercises");
+
+      await expect(
+        page.getByText("Failed to load exercises. Please try again."),
+      ).toBeVisible({ timeout: 20000 });
+    });
+
+    test("save button is disabled when category is not selected", async ({
+      page,
+    }) => {
+      await page.route("http://localhost:3000/exercises", (route) =>
+        route.fulfill({ json: [] }),
+      );
+      await page.goto("/exercises");
+      await page.getByRole("button", { name: "New Exercise" }).click();
+
+      const dialog = page.getByRole("dialog", { name: "New Exercise" });
+      await expect(dialog.getByRole("button", { name: "Save" })).toBeDisabled();
+
+      await page.getByTestId("native-select-category").selectOption("grammar");
+      await expect(dialog.getByRole("button", { name: "Save" })).toBeEnabled();
+    });
+
+    test("confirm button is disabled with fewer than 2 MCQ options", async ({
+      page,
+    }) => {
+      await page.route("http://localhost:3000/exercises", (route) =>
+        route.fulfill({ json: [] }),
+      );
+      await page.goto("/exercises");
+      await page.getByRole("button", { name: "New Exercise" }).click();
+
+      const dialog = page.getByRole("dialog", { name: "New Exercise" });
+      await dialog.getByRole("button", { name: "Add Question" }).click();
+
+      const questionDialog = page
+        .getByRole("dialog")
+        .filter({ hasText: "New Question" });
+
+      await page.getByTestId("native-select-question-type").selectOption("mcq");
+      await questionDialog
+        .getByTestId("input-question-prompt")
+        .fill("What is a verb?");
+
+      // only one option filled — confirm should be disabled
+      await questionDialog.getByTestId("input-option-A").fill("parler");
+      await expect(
+        questionDialog.getByRole("button", { name: "Confirm" }),
+      ).toBeDisabled();
+
+      // second option filled — confirm should be enabled
+      await questionDialog.getByTestId("input-option-B").fill("finir");
+      await questionDialog.getByRole("radio").first().click({ force: true });
+      await expect(
+        questionDialog.getByRole("button", { name: "Confirm" }),
+      ).toBeEnabled();
     });
   });
 });

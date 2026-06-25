@@ -128,6 +128,7 @@ export default function ExerciseModal({
               </Button>
               <Button
                 loading={mutation.isPending}
+                disabled={!form.category}
                 onClick={onSave}
                 colorPalette="blue"
               >
