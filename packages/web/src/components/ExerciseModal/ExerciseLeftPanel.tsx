@@ -80,9 +80,9 @@ export default function ExerciseLeftPanel({ form, setForm }: Props) {
                     setSelected([]);
                   }}
                 >
-                  <Select.HiddenSelect />
+                  <Select.HiddenSelect data-testid="native-select-category" />
                   <Select.Control>
-                    <Select.Trigger>
+                    <Select.Trigger data-testid="select-category">
                       <Select.ValueText placeholder="Select category" />
                     </Select.Trigger>
                     <Select.IndicatorGroup>
@@ -118,7 +118,7 @@ export default function ExerciseLeftPanel({ form, setForm }: Props) {
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
-                      <Select.Trigger>
+                      <Select.Trigger data-testid="select-tags">
                         <Select.ValueText placeholder="Select tags" />
                       </Select.Trigger>
                       <Select.IndicatorGroup>
@@ -153,6 +153,7 @@ export default function ExerciseLeftPanel({ form, setForm }: Props) {
                   </Button>
                 </HStack>
                 <TagsInput.Root
+                  data-testid="tags-display"
                   value={form.tags ?? []}
                   onValueChange={(details) =>
                     setForm((f) => ({ ...f, tags: details.value }))
@@ -252,6 +253,7 @@ export default function ExerciseLeftPanel({ form, setForm }: Props) {
           <Accordion.ItemContent>
             <Stack px={3} pb={3}>
               <Textarea
+                data-testid="textarea-prompt"
                 placeholder="Prompt..."
                 value={form.prompt ?? ""}
                 onChange={(e) =>
@@ -270,6 +272,7 @@ export default function ExerciseLeftPanel({ form, setForm }: Props) {
           <Accordion.ItemContent>
             <Stack px={3} pb={3}>
               <Textarea
+                data-testid="textarea-context"
                 placeholder="Context..."
                 value={form.context ?? ""}
                 onChange={(e) =>

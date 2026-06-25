@@ -93,9 +93,9 @@ export default function QuestionDialog({
                         })
                       }
                     >
-                      <Select.HiddenSelect />
+                      <Select.HiddenSelect data-testid="native-select-question-type" />
                       <Select.Control>
-                        <Select.Trigger>
+                        <Select.Trigger data-testid="select-question-type">
                           <Select.ValueText placeholder="Select type" />
                         </Select.Trigger>
                         <Select.IndicatorGroup>
@@ -120,6 +120,7 @@ export default function QuestionDialog({
                   <Field.Root flex={1} required>
                     <Field.Label>Prompt</Field.Label>
                     <Input
+                      data-testid="input-question-prompt"
                       value={form.prompt ?? ""}
                       onChange={(e) =>
                         setForm({ ...form, prompt: e.target.value })
@@ -131,6 +132,7 @@ export default function QuestionDialog({
                   <Field.Root flex={1} required>
                     <Field.Label>Answer</Field.Label>
                     <Input
+                      data-testid="input-question-answer"
                       disabled={form.type === "mcq"}
                       value={form.answer ?? ""}
                       onChange={(e) =>
@@ -169,6 +171,7 @@ export default function QuestionDialog({
                               {key}
                             </Text>
                             <Input
+                              data-testid={`input-option-${key}`}
                               value={form.options?.[key] || ""}
                               onChange={(e) =>
                                 setForm({

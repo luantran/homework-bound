@@ -117,29 +117,35 @@ export default function Exercises() {
         <Table.Body>
           {data?.map((exercise) => (
             <Table.Row key={exercise.id}>
-              <Table.Cell>{exercise.exercise_number}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell data-testid="cell-number">
+                {exercise.exercise_number}
+              </Table.Cell>
+              <Table.Cell data-testid="cell-category">
                 <Badge>{exercise.category}</Badge>
               </Table.Cell>
-              <Table.Cell maxW="160px">
+              <Table.Cell data-testid="cell-tags" maxW="160px">
                 <HStack gap={1} flexWrap="wrap">
                   {exercise.tags?.map((tag) => (
                     <Badge key={tag}>{tag.split(".").at(-1)}</Badge>
                   ))}
                 </HStack>
               </Table.Cell>
-              <Table.Cell>{exercise.prompt ?? "—"}</Table.Cell>
-              <Table.Cell>{exercise.context ?? "—"}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell data-testid="cell-prompt">
+                {exercise.prompt ?? "—"}
+              </Table.Cell>
+              <Table.Cell data-testid="cell-context">
+                {exercise.context ?? "—"}
+              </Table.Cell>
+              <Table.Cell data-testid="cell-level">
                 {formatLevel(exercise.min_level, exercise.max_level)}
               </Table.Cell>
-              <Table.Cell textAlign="center">
+              <Table.Cell data-testid="cell-questions" textAlign="center">
                 {exercise.questions.length}
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell data-testid="cell-worksheets">
                 {exercise.worksheets_exercises.length} worksheets
               </Table.Cell>
-              <Table.Cell>
+              <Table.Cell data-testid="cell-actions">
                 <Stack direction="row" gap={2}>
                   <Button
                     size="sm"
