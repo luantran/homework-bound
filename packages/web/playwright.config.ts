@@ -11,4 +11,7 @@ export default defineConfig({
     baseURL: "http://localhost:5173",
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+  reporter: process.env.CI
+    ? [["github"], ["junit", { outputFile: "test-results/results.xml" }]]
+    : [["list"]],
 });
