@@ -71,7 +71,7 @@ jobs:
         working-directory: packages/web
 
       - name: Run Playwright tests
-        run: npm run test:e2e -w packages/web
+        run: npm run test:e2e -w web
 
       - name: Report Playwright test results
         uses: dorny/test-reporter@v1
