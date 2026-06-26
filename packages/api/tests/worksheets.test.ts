@@ -156,9 +156,9 @@ describe("GET /worksheets/:id", () => {
     expect(json.id).toBe(created.id);
     expect(json.title).toBe("With Exercise");
     expect(json).toHaveProperty("worksheet_number");
-    expect(json).toHaveProperty("worksheets_exercises");
-    expect(json.worksheets_exercises).toHaveLength(1);
-    expect(json.worksheets_exercises[0].exercise.id).toBe(exercise.id);
+    expect(json).toHaveProperty("exercises");
+    expect(json.exercises).toHaveLength(1);
+    expect(json.exercises[0].id).toBe(exercise.id);
   });
 
   it("returns nested exercises with their questions for the full chain", async () => {
@@ -187,8 +187,8 @@ describe("GET /worksheets/:id", () => {
     const res = await app.request(`/worksheets/${created.id}`);
     expect(res.status).toBe(200);
     const json = await res.json();
-    expect(json.worksheets_exercises).toHaveLength(1);
-    const nestedExercise = json.worksheets_exercises[0].exercise;
+    expect(json.exercises).toHaveLength(1);
+    const nestedExercise = json.exercises[0];
     expect(nestedExercise.id).toBe(exercise.id);
     expect(nestedExercise.questions).toHaveLength(1);
     expect(nestedExercise.questions[0].prompt).toBe(

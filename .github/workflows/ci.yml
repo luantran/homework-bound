@@ -1,4 +1,4 @@
-name: API tests
+name: CI
 
 on:
   push:
@@ -28,14 +28,15 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout
-        uses: "actions/checkout@v4"
+        uses: actions/checkout@v4
 
       - name: Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Install dependencies
-        run: "npm ci"
+        run: npm ci
 
       - name: Run migrations
         run: npm run db:migrate
@@ -43,8 +44,23 @@ jobs:
       - name: Run Vitest tests
         run: npm test -w api
 
-      # - name: Start API server
-      #   run: npm run dev -w @homework-bound/api &
+  web-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # - name: Wait for server
-      #   run: npx wait-on http://localhost:3000
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/web
+
+      - name: Run Playwright tests
+        run: npm run test:e2e -w packages/web
