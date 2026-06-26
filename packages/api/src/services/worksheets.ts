@@ -10,12 +10,16 @@ const defaultID = "00000000-0000-0000-0000-000000000000";
 
 export async function getWorksheets() {
   try {
-    const worksheets = await db.query.worksheets.findMany({
-      with: { worksheets_exercises: { with: { exercise: true } } },
+    const result = await db.query.worksheets.findMany({
+      with: {
+        worksheets_exercises: {
+          with: { exercise: { with: { questions: true } } },
+        },
+      },
     });
-    return worksheets.map((worksheet) => ({
-      ...worksheet,
-      exercises: worksheet.worksheets_exercises.map((we) => we.exercise),
+    return result.map((w) => ({
+      ...w,
+      exercises: w.worksheets_exercises.map((we) => we.exercise),
     }));
   } catch (error) {
     logger.error(`Failed to get worksheets: ${error}`);
@@ -30,13 +34,8 @@ export async function getWorksheetByID(id: string) {
       with: {
         worksheets_exercises: {
           with: {
-            // nested join through exercises → exercises_questions → questions
             exercise: {
-              with: {
-                exercises_questions: {
-                  with: { question: true },
-                },
-              },
+              with: { questions: true },
             },
           },
         },
@@ -45,17 +44,10 @@ export async function getWorksheetByID(id: string) {
     if (!worksheet) {
       throw new WorksheetNotFoundError();
     }
+    const { worksheets_exercises, ...rest } = worksheet;
     return {
-      ...worksheet,
-      exercises: worksheet.worksheets_exercises.flatMap((we) => {
-        if (!we.exercise) return [];
-        return [
-          {
-            ...we.exercise,
-            questions: we.exercise.exercises_questions.map((eq) => eq.question),
-          },
-        ];
-      }),
+      ...rest,
+      exercises: worksheets_exercises.map((we) => we.exercise),
     };
   } catch (error) {
     if (error instanceof WorksheetNotFoundError) throw error;

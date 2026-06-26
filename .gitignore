@@ -3,6 +3,10 @@ dist
 .env
 .env.local
 .turbo
+**/test-results/
 
 .claude/
 CLAUDE.md
+.mcp.json
+
+

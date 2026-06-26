@@ -1,7 +1,7 @@
 import { CreateQuestion } from "@homework-bound/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
-import { questions, exercises_questions } from "../db/schema";
+import { questions } from "../db/schema";
 import { QuestionNotFoundError } from "../errors";
 import * as logger from "../logger";
 
@@ -34,12 +34,15 @@ export async function getQuestionByID(id: string) {
   }
 }
 
-export async function createQuestion(data: CreateQuestion) {
+export async function createQuestion(
+  data: CreateQuestion & { exercise_id: string },
+) {
   try {
     const [question] = await db
       .insert(questions)
       .values({
         created_by: defaultID,
+        exercise_id: data.exercise_id,
         prompt: data.prompt,
         hint: data.hint,
         answer: data.answer,
@@ -90,11 +93,6 @@ export async function deleteQuestionByID(id: string) {
       if (!question) {
         throw new QuestionNotFoundError("Question ID does not exist");
       }
-
-      // remove junction rows first to avoid FK violation when deleting the question
-      await tx
-        .delete(exercises_questions)
-        .where(eq(exercises_questions.question_id, id));
 
       await tx.delete(questions).where(eq(questions.id, id));
     });

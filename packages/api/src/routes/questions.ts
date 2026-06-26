@@ -48,7 +48,8 @@ router.post("/", async (context) => {
     return context.json({ error: "Invalid JSON body" }, 400);
   }
   try {
-    const data = CreateQuestionSchema.parse(body);
+    const schema = CreateQuestionSchema.extend({ exercise_id: z.uuid() });
+    const data = schema.parse(body);
     const result = await createQuestion(data);
     return context.json(result, 201);
   } catch (e) {

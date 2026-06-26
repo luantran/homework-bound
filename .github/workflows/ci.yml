@@ -1,0 +1,82 @@
+name: Regression Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    env:
+      DB_ENV: local
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/homework_bound
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: homework_bound
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run migrations
+        run: npm run db:migrate
+
+      - name: Run Vitest tests
+        run: npm test -w api
+
+      - name: Report API test results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: API Tests
+          path: packages/api/test-results/results.xml
+          reporter: java-junit
+
+  web-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/web
+
+      - name: Run Playwright tests
+        run: npm run test:e2e -w web
+
+      - name: Report Playwright test results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Playwright E2E Tests
+          path: packages/web/test-results/results.xml
+          reporter: java-junit
