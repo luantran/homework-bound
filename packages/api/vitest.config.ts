@@ -6,5 +6,8 @@ export default defineConfig({
     globalSetup: "tests/setup.ts",
     // integration tests share a real DB — parallel execution causes race conditions
     fileParallelism: false,
+    reporters: process.env.CI
+      ? [["verbose"], ["junit", { outputFile: "test-results/results.xml" }]]
+      : ["verbose"],
   },
 });

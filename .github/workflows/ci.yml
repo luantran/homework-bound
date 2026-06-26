@@ -33,7 +33,7 @@ jobs:
       - name: Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install dependencies
         run: npm ci
@@ -42,7 +42,7 @@ jobs:
         run: npm run db:migrate
 
       - name: Run Vitest tests
-        run: npm test -w api -- --reporter=verbose --reporter=junit --outputFile=packages/api/test-results/results.xml
+        run: npm test -w api
 
       - name: Report API test results
         uses: dorny/test-reporter@v1
@@ -61,7 +61,7 @@ jobs:
       - name: Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install dependencies
         run: npm ci
