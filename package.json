@@ -26,8 +26,16 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jiti": "^2.7.0",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.8.3",
     "turbo": "^2.0.0",
     "wait-on": "^9.0.10"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml}": "prettier --write"
   }
 }

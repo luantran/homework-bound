@@ -1,2 +1,2 @@
-npx prettier --check . 
+npx lint-staged
 npx eslint .
