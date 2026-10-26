@@ -22,11 +22,19 @@ export const UserSchema = z.object({
 });
 
 export const CreateQuestionSchema = z.object({
-  prompt: z.string(),
+  prompt: z.string().describe("This item's own label as printed next to it"),
   hint: z.string().optional(),
   answer: z.string(),
   type: z.enum(QuestionType),
-  options: z.record(z.string(), z.string()).optional(),
+  options: z
+    .object({
+      A: z.string().optional(),
+      B: z.string().optional(),
+      C: z.string().optional(),
+      D: z.string().optional(),
+      E: z.string().optional(),
+    })
+    .optional(),
   tags: z.array(z.string()).optional(),
   min_level: z.number().int().min(1).max(11).optional(),
   max_level: z.number().int().min(1).max(11).optional(),
@@ -37,9 +45,12 @@ export const QuestionSchema = CreateQuestionSchema.extend({
 });
 
 export const CreateExerciseSchema = z.object({
-  context: z.string().optional(),
-  prompt: z.string().optional(),
   category: z.enum(ExerciseCategory),
+  prompt: z
+    .string()
+    .describe("The instruction printed once above the whole exercise")
+    .optional(),
+  context: z.string().optional(),
   questions: z.array(CreateQuestionSchema),
   tags: z.array(z.string()).optional(),
   min_level: z.number().int().min(1).max(11).optional(),

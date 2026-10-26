@@ -14,6 +14,7 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:seed": "dotenv -e .env.local -- npx tsx packages/api/scripts/seed.ts",
     "db:migrate:ci": "drizzle-kit migrate",
+    "db:migrate:test": "dotenv -e .env.local -v DB_ENV=local -- sh -c \"DATABASE_URL=$TEST_DATABASE_URL drizzle-kit migrate\"",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
     "db:migrate:prod": "dotenv -e .env.local -- cross-env DB_ENV=prod drizzle-kit migrate"
   },
@@ -26,8 +27,16 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jiti": "^2.7.0",
+    "lint-staged": "^17.6.0",
     "prettier": "^3.8.3",
     "turbo": "^2.0.0",
     "wait-on": "^9.0.10"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml}": "prettier --write"
   }
 }

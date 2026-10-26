@@ -14,13 +14,14 @@ export type ExerciseForm = Partial<Omit<CreateExercise, "questions">> & {
   questions: Question[];
 };
 
-const toForm = (ex?: Exercise): ExerciseForm => ({
+const toForm = (ex?: Exercise | CreateExercise): ExerciseForm => ({
   category: ex?.category,
   min_level: ex?.min_level ?? undefined,
   max_level: ex?.max_level ?? undefined,
   tags: ex?.tags,
   context: ex?.context,
-  questions: ex?.questions ?? [],
+  // Draft questions aren't saved yet so have no id, same cast the right panel uses for new questions
+  questions: (ex?.questions ?? []) as Question[],
   prompt: ex?.prompt,
 });
 
@@ -28,20 +29,26 @@ export default function ExerciseModal({
   isOpen,
   onClose,
   exercise,
+  draft,
 }: {
   isOpen: boolean;
   onClose: () => void;
   exercise?: Exercise;
+  draft?: CreateExercise;
 }) {
   const isEditMode = Boolean(exercise);
-  const title = isEditMode ? "Edit Exercise" : "New Exercise";
+  const title = isEditMode
+    ? "Edit Exercise"
+    : draft
+      ? "Review Scanned Exercise"
+      : "New Exercise";
 
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-  const [form, setForm] = useState<ExerciseForm>(toForm(exercise));
+  const [form, setForm] = useState<ExerciseForm>(toForm(exercise ?? draft));
 
   if (isOpen && !prevIsOpen) {
     setPrevIsOpen(true);
-    setForm(toForm(exercise));
+    setForm(toForm(exercise ?? draft));
   } else if (!isOpen && prevIsOpen) {
     setPrevIsOpen(false);
   }
@@ -128,7 +135,9 @@ export default function ExerciseModal({
               </Button>
               <Button
                 loading={mutation.isPending}
-                disabled={!form.category}
+                disabled={
+                  !form.category || form.questions.some((q) => !q.answer)
+                }
                 onClick={onSave}
                 colorPalette="blue"
               >

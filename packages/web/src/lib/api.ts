@@ -1,4 +1,5 @@
 import type { CreateExercise, Exercise } from "@homework-bound/shared";
+import { prepareImage } from "./image";
 
 const BASE_URL = "http://localhost:3000";
 
@@ -20,6 +21,15 @@ export async function createExercise(data: CreateExercise): Promise<Exercise> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+  });
+}
+
+export async function extractExercise(file: File): Promise<CreateExercise> {
+  const form = new FormData();
+  form.append("file", await prepareImage(file), "page.jpg");
+  return apiFetch<CreateExercise>("/exercises/extract", {
+    method: "POST",
+    body: form,
   });
 }
 
