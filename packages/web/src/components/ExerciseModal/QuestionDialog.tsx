@@ -165,7 +165,7 @@ export default function QuestionDialog({
                       }
                     >
                       <Stack gap={2}>
-                        {["A", "B", "C", "D", "E"].map((key) => (
+                        {(["A", "B", "C", "D", "E"] as const).map((key) => (
                           <HStack key={key}>
                             <Text w="20px" fontSize="sm" fontWeight="bold">
                               {key}

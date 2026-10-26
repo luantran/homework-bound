@@ -26,7 +26,15 @@ export const CreateQuestionSchema = z.object({
   hint: z.string().optional(),
   answer: z.string(),
   type: z.enum(QuestionType),
-  options: z.record(z.string(), z.string()).optional(),
+  options: z
+    .object({
+      A: z.string().optional(),
+      B: z.string().optional(),
+      C: z.string().optional(),
+      D: z.string().optional(),
+      E: z.string().optional(),
+    })
+    .optional(),
   tags: z.array(z.string()).optional(),
   min_level: z.number().int().min(1).max(11).optional(),
   max_level: z.number().int().min(1).max(11).optional(),
