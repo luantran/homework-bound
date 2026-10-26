@@ -84,6 +84,19 @@ const scannedDraft = {
   ],
 };
 
+const twoQuestionDraft = {
+  ...scannedDraft,
+  questions: [
+    scannedDraft.questions[0],
+    {
+      prompt: "relire, 3e pers. plur.",
+      type: "mcq",
+      options: { A: "relisent", B: "relisaient", C: "reliraient" },
+      answer: "",
+    },
+  ],
+};
+
 test.describe("Exercises page", () => {
   test.describe("empty state", () => {
     test.beforeEach(async ({ page }) => {
@@ -680,6 +693,86 @@ test.describe("Exercises page", () => {
 
       await expect(page.getByText("Image must be JPG or PNG")).toBeVisible();
       await expect(page.getByRole("dialog")).not.toBeVisible();
+    });
+
+    test("confirm & next steps through questions and closes after the last", async ({
+      page,
+    }) => {
+      await page.route("http://localhost:3000/exercises/extract", (route) =>
+        route.fulfill({ json: twoQuestionDraft }),
+      );
+      await page.getByTestId("input-scan-file").setInputFiles({
+        name: "page.png",
+        mimeType: "image/png",
+        buffer: tinyPng,
+      });
+
+      const dialog = page.getByRole("dialog", {
+        name: "Review Scanned Exercise",
+      });
+      await dialog.getByTestId("button-edit-question-0").click();
+
+      const questionDialog = page.getByRole("dialog", {
+        name: "Edit Question",
+      });
+      // radio inputs are visually hidden — force the click
+      await questionDialog
+        .locator('input[type="radio"][value="B"]')
+        .click({ force: true });
+      await questionDialog
+        .getByRole("button", { name: "More options" })
+        .click();
+      await page.getByRole("menuitem", { name: "Confirm & next" }).click();
+
+      // dialog stays open and moves on to the second question
+      await expect(
+        questionDialog.getByTestId("input-question-prompt"),
+      ).toHaveValue("relire, 3e pers. plur.");
+      await questionDialog
+        .locator('input[type="radio"][value="A"]')
+        .click({ force: true });
+      // the main button now repeats the last choice
+      await questionDialog
+        .getByRole("button", { name: "Confirm & next", exact: true })
+        .click();
+
+      // last question: closes like plain Confirm
+      await expect(questionDialog).not.toBeVisible();
+      await expect(dialog.getByText("Answer: B")).toBeVisible();
+      await expect(dialog.getByText("Answer: A")).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "Save" })).toBeEnabled();
+
+      expect(
+        await page.evaluate(() =>
+          localStorage.getItem("hb.questionConfirmMode"),
+        ),
+      ).toBe("next");
+    });
+
+    test("starts with the remembered confirm choice", async ({ page }) => {
+      await page.addInitScript(() =>
+        localStorage.setItem("hb.questionConfirmMode", "next"),
+      );
+      await page.goto("/exercises");
+      await page.route("http://localhost:3000/exercises/extract", (route) =>
+        route.fulfill({ json: twoQuestionDraft }),
+      );
+      await page.getByTestId("input-scan-file").setInputFiles({
+        name: "page.png",
+        mimeType: "image/png",
+        buffer: tinyPng,
+      });
+
+      await page
+        .getByRole("dialog", { name: "Review Scanned Exercise" })
+        .getByTestId("button-edit-question-0")
+        .click();
+
+      await expect(
+        page
+          .getByRole("dialog", { name: "Edit Question" })
+          .getByRole("button", { name: "Confirm & next", exact: true }),
+      ).toBeVisible();
     });
   });
 });

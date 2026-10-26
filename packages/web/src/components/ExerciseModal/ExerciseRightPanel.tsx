@@ -12,6 +12,13 @@ import QuestionDialog from "./QuestionDialog";
 
 const emptyForm: Partial<CreateQuestion> = {};
 
+const toQuestionForm = (q: Question): Partial<CreateQuestion> => ({
+  type: q.type,
+  prompt: q.prompt,
+  answer: q.answer,
+  options: q.options,
+});
+
 type Props = {
   questions: Question[];
   setQuestions: (v: Question[]) => void;
@@ -31,13 +38,7 @@ export default function ExerciseRightPanel({ questions, setQuestions }: Props) {
   const openEdit = (i: number) => {
     if (editIndex !== i) {
       // different question → pre-fill with that question's data
-      const q = questions[i];
-      setForm({
-        type: q.type,
-        prompt: q.prompt,
-        answer: q.answer,
-        options: q.options,
-      });
+      setForm(toQuestionForm(questions[i]));
     }
     // same question after backdrop close → preserve current form
     setEditIndex(i);
@@ -63,6 +64,29 @@ export default function ExerciseRightPanel({ questions, setQuestions }: Props) {
     setForm(emptyForm);
     setEditIndex(null);
     setIsDialogOpen(false);
+  };
+
+  const handleConfirmAndNext = (q: CreateQuestion) => {
+    if (editIndex === null) {
+      // adding: keep the dialog open with a blank form for the next question
+      setQuestions([...questions, q as Question]);
+      setForm(emptyForm);
+      return;
+    }
+    const updated = questions.map((item, idx) =>
+      idx === editIndex ? (q as Question) : item,
+    );
+    setQuestions(updated);
+    const next = editIndex + 1;
+    if (next >= updated.length) {
+      // last question: same as plain Confirm
+      setForm(emptyForm);
+      setEditIndex(null);
+      setIsDialogOpen(false);
+      return;
+    }
+    setForm(toQuestionForm(updated[next]));
+    setEditIndex(next);
   };
 
   return (
@@ -107,6 +131,7 @@ export default function ExerciseRightPanel({ questions, setQuestions }: Props) {
                     <Badge>{q.type}</Badge>
                     <HStack ml={4}>
                       <Button
+                        data-testid={`button-edit-question-${i}`}
                         size="xs"
                         variant="outline"
                         onClick={() => openEdit(i)}
@@ -136,6 +161,7 @@ export default function ExerciseRightPanel({ questions, setQuestions }: Props) {
                 onClose={() => setIsDialogOpen(false)}
                 onCancel={handleCancel}
                 onConfirm={handleConfirm}
+                onConfirmAndNext={handleConfirmAndNext}
               />
 
               <Button size="sm" variant="outline" onClick={openAdd}>

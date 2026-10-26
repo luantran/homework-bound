@@ -3,8 +3,11 @@ import {
   CloseButton,
   Dialog,
   Field,
+  Group,
   HStack,
+  IconButton,
   Input,
+  Menu,
   Portal,
   RadioGroup,
   Select,
@@ -16,6 +19,35 @@ import {
   type CreateQuestion,
   QuestionTypeValues,
 } from "@homework-bound/shared";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+
+type ConfirmMode = "confirm" | "next";
+
+const CONFIRM_MODE_KEY = "hb.questionConfirmMode";
+const CONFIRM_LABELS: Record<ConfirmMode, string> = {
+  confirm: "Confirm",
+  next: "Confirm & next",
+};
+
+// localStorage can throw (private windows, blocked storage), so fall back to plain Confirm
+const loadConfirmMode = (): ConfirmMode => {
+  try {
+    return localStorage.getItem(CONFIRM_MODE_KEY) === "next"
+      ? "next"
+      : "confirm";
+  } catch {
+    return "confirm";
+  }
+};
+
+const saveConfirmMode = (mode: ConfirmMode) => {
+  try {
+    localStorage.setItem(CONFIRM_MODE_KEY, mode);
+  } catch {
+    // not remembering the choice is fine
+  }
+};
 
 type Props = {
   isOpen: boolean;
@@ -25,6 +57,7 @@ type Props = {
   onClose: () => void;
   onCancel: () => void;
   onConfirm: (question: CreateQuestion) => void;
+  onConfirmAndNext: (question: CreateQuestion) => void;
 };
 
 export default function QuestionDialog({
@@ -35,7 +68,10 @@ export default function QuestionDialog({
   onClose,
   onCancel,
   onConfirm,
+  onConfirmAndNext,
 }: Props) {
+  const [confirmMode, setConfirmMode] = useState<ConfirmMode>(loadConfirmMode);
+
   const typeCollection = createListCollection({
     items: QuestionTypeValues.map((v) => ({ label: v, value: v })),
   });
@@ -47,14 +83,18 @@ export default function QuestionDialog({
     form.type && form.prompt && form.answer && mcqValid,
   );
 
-  const handleConfirm = () => {
+  const handleConfirm = (mode: ConfirmMode) => {
     if (!canConfirm) return;
-    onConfirm({
+    setConfirmMode(mode);
+    saveConfirmMode(mode);
+    const question: CreateQuestion = {
       type: form.type as CreateQuestion["type"],
       prompt: form.prompt!,
       answer: form.answer!,
       options: form.type === "mcq" ? form.options : undefined,
-    });
+    };
+    if (mode === "next") onConfirmAndNext(question);
+    else onConfirm(question);
   };
 
   return (
@@ -206,13 +246,44 @@ export default function QuestionDialog({
               <Button variant="ghost" onClick={onCancel}>
                 Cancel
               </Button>
-              <Button
-                colorPalette="blue"
-                onClick={handleConfirm}
-                disabled={!canConfirm}
-              >
-                Confirm
-              </Button>
+              {/* Split button: the main part repeats the last choice, the arrow picks the other one */}
+              <Group attached>
+                <Button
+                  colorPalette="blue"
+                  onClick={() => handleConfirm(confirmMode)}
+                  disabled={!canConfirm}
+                >
+                  {CONFIRM_LABELS[confirmMode]}
+                </Button>
+                <Menu.Root
+                  positioning={{ placement: "top-end" }}
+                  onSelect={(d) => handleConfirm(d.value as ConfirmMode)}
+                >
+                  <Menu.Trigger asChild>
+                    <IconButton
+                      colorPalette="blue"
+                      aria-label="More options"
+                      disabled={!canConfirm}
+                      borderLeftWidth="1px"
+                      borderLeftColor="blue.700"
+                    >
+                      <ChevronDown />
+                    </IconButton>
+                  </Menu.Trigger>
+                  <Portal>
+                    <Menu.Positioner>
+                      <Menu.Content>
+                        <Menu.Item value="confirm">
+                          {CONFIRM_LABELS.confirm}
+                        </Menu.Item>
+                        <Menu.Item value="next">
+                          {CONFIRM_LABELS.next}
+                        </Menu.Item>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Portal>
+                </Menu.Root>
+              </Group>
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog.Positioner>
