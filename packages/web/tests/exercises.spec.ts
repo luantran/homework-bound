@@ -65,6 +65,25 @@ const mockExerciseWithWorksheet = {
 
 const mockExercises = [mockExercise];
 
+// 1x1 PNG, a real image so the browser's resize step can decode it
+const tinyPng = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+const scannedDraft = {
+  category: "conjugaison",
+  prompt: "Noircis la case du verbe correctement conjugué.",
+  questions: [
+    {
+      prompt: "accrocher, 3e pers. sing.",
+      type: "mcq",
+      options: { A: "accrocha", B: "accroche", C: "accrochait" },
+      answer: "",
+    },
+  ],
+};
+
 test.describe("Exercises page", () => {
   test.describe("empty state", () => {
     test.beforeEach(async ({ page }) => {
@@ -603,6 +622,64 @@ test.describe("Exercises page", () => {
       await expect(
         questionDialog.getByRole("button", { name: "Confirm" }),
       ).toBeEnabled();
+    });
+  });
+
+  test.describe("import from scan", () => {
+    test.beforeEach(async ({ page }) => {
+      await page.route("http://localhost:3000/exercises", (route) =>
+        route.fulfill({ json: [] }),
+      );
+      await page.goto("/exercises");
+    });
+
+    test("uploads a resized jpeg and opens the review modal prefilled", async ({
+      page,
+    }) => {
+      let uploadBody = "";
+      await page.route("http://localhost:3000/exercises/extract", (route) => {
+        uploadBody = route.request().postDataBuffer()?.toString("latin1") ?? "";
+        return route.fulfill({ json: scannedDraft });
+      });
+
+      await page.getByTestId("input-scan-file").setInputFiles({
+        name: "page.png",
+        mimeType: "image/png",
+        buffer: tinyPng,
+      });
+
+      const dialog = page.getByRole("dialog", {
+        name: "Review Scanned Exercise",
+      });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByTestId("textarea-prompt")).toHaveValue(
+        scannedDraft.prompt,
+      );
+      await expect(dialog.getByText("accrocher, 3e pers. sing.")).toBeVisible();
+      // blank answer from the scan blocks saving until the teacher picks one
+      await expect(dialog.getByRole("button", { name: "Save" })).toBeDisabled();
+
+      // the PNG was re-encoded to JPEG before upload
+      expect(uploadBody).toContain('filename="page.jpg"');
+      expect(uploadBody).toContain("Content-Type: image/jpeg");
+    });
+
+    test("shows the API error when extraction fails", async ({ page }) => {
+      await page.route("http://localhost:3000/exercises/extract", (route) =>
+        route.fulfill({
+          status: 400,
+          json: { error: "Image must be JPG or PNG" },
+        }),
+      );
+
+      await page.getByTestId("input-scan-file").setInputFiles({
+        name: "page.png",
+        mimeType: "image/png",
+        buffer: tinyPng,
+      });
+
+      await expect(page.getByText("Image must be JPG or PNG")).toBeVisible();
+      await expect(page.getByRole("dialog")).not.toBeVisible();
     });
   });
 });

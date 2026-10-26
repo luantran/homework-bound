@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiFetch, deleteExercise } from "../lib/api";
+import { apiFetch, deleteExercise, extractExercise } from "../lib/api";
 import {
   Table,
   Badge,
@@ -13,10 +13,14 @@ import {
   List,
   Link,
 } from "@chakra-ui/react";
-import { getObjectTag, type Exercise } from "@homework-bound/shared";
+import {
+  getObjectTag,
+  type CreateExercise,
+  type Exercise,
+} from "@homework-bound/shared";
 import ExerciseModal from "../components/ExerciseModal";
 import DeleteDialog from "../components/DeleteDialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const toShortLevel = (level: number) =>
   level <= 6 ? `P${level}` : `S${level - 6}`;
@@ -24,6 +28,15 @@ const toShortLevel = (level: number) =>
 const formatLevel = (min?: number | null, max?: number | null) => {
   if (!min) return "—";
   return max ? `${toShortLevel(min)}-${toShortLevel(max)}` : toShortLevel(min);
+};
+
+// apiFetch throws the raw response body, e.g. {"error":"Image must be JPG or PNG"}
+const toErrorMessage = (e: Error) => {
+  try {
+    return JSON.parse(e.message).error ?? e.message;
+  } catch {
+    return e.message;
+  }
 };
 
 export default function Exercises() {
@@ -40,6 +53,9 @@ export default function Exercises() {
     undefined,
   );
 
+  const [draft, setDraft] = useState<CreateExercise | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -47,6 +63,15 @@ export default function Exercises() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       setDeleteTarget(undefined);
+    },
+  });
+
+  const extractMutation = useMutation({
+    mutationFn: (file: File) => extractExercise(file),
+    onSuccess: (result) => {
+      setEditExercise(undefined);
+      setDraft(result);
+      setOpenExercise(true);
     },
   });
 
@@ -97,16 +122,44 @@ export default function Exercises() {
     <Stack gap={4}>
       <Stack direction="row" justify="space-between" align="center">
         <Heading size="lg">Exercises</Heading>
-        <Button
-          colorPalette="blue"
-          onClick={() => {
-            setEditExercise(undefined);
-            setOpenExercise(true);
-          }}
-        >
-          New Exercise
-        </Button>
+        <HStack>
+          <Button
+            variant="outline"
+            loading={extractMutation.isPending}
+            loadingText="Reading page..."
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Import from scan
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            data-testid="input-scan-file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = ""; // so picking the same file again still triggers onChange
+              if (file) extractMutation.mutate(file);
+            }}
+          />
+          <Button
+            colorPalette="blue"
+            onClick={() => {
+              setEditExercise(undefined);
+              setDraft(undefined);
+              setOpenExercise(true);
+            }}
+          >
+            New Exercise
+          </Button>
+        </HStack>
       </Stack>
+      {extractMutation.isError && (
+        <Text color="red.500" fontSize="sm">
+          {toErrorMessage(extractMutation.error)}
+        </Text>
+      )}
       <Table.Root>
         <Table.Header>
           <Table.Row>
@@ -200,8 +253,10 @@ export default function Exercises() {
         onClose={() => {
           setOpenExercise(false);
           setEditExercise(undefined);
+          setDraft(undefined);
         }}
         exercise={editExercise}
+        draft={draft}
       />
     </Stack>
   );
