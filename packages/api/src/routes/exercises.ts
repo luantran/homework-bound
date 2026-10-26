@@ -90,6 +90,12 @@ router.post("/extract", async (context) => {
   try {
     const data = Buffer.from(await file.arrayBuffer()).toString("base64");
     const draft = await extractExercise(data, file.type as ImageMediaType);
+    if (draft.questions.length === 0) {
+      return context.json(
+        { error: "No supported questions found on this page" },
+        422,
+      );
+    }
     return context.json(draft);
   } catch (e) {
     if (e instanceof ExtractionRefusedError) {

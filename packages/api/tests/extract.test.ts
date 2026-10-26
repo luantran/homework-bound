@@ -71,6 +71,15 @@ describe("POST /exercises/extract", () => {
     expect(res.status).toBe(400);
   });
 
+  it("returns 422 when no questions are found", async () => {
+    mockExtract.mockResolvedValue({ ...draft, questions: [] });
+    const res = await upload(png());
+    expect(res.status).toBe(422);
+    expect(await res.json()).toEqual({
+      error: "No supported questions found on this page",
+    });
+  });
+
   it("returns 422 when the model refuses", async () => {
     mockExtract.mockRejectedValue(new ExtractionRefusedError());
     const res = await upload(png());
