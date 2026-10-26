@@ -1,8 +1,14 @@
 import { Hono } from "hono";
+import Anthropic from "@anthropic-ai/sdk";
 import * as logger from "../logger";
 import { CreateExerciseSchema } from "@homework-bound/shared";
 import z, { ZodError } from "zod";
-import { ExerciseNotFoundError } from "../errors";
+import {
+  ExerciseNotFoundError,
+  ExtractionFailedError,
+  ExtractionRefusedError,
+} from "../errors";
+import { extractExercise, type ImageMediaType } from "../services/extraction";
 import {
   getExercises,
   createExercise,
@@ -55,6 +61,47 @@ router.post("/", async (context) => {
       return context.json({ error: e.issues }, 400);
     }
     logger.error(`POST /exercises failed: ${e}`);
+    return context.json({ error: "Internal server error" }, 500);
+  }
+});
+
+const ALLOWED_IMAGE_TYPES: string[] = ["image/jpeg", "image/png"];
+// The API caps images at 5 MB after base64 encoding, which adds ~33%
+const MAX_IMAGE_BYTES = 3.75 * 1024 * 1024;
+
+router.post("/extract", async (context) => {
+  let file;
+  // Body parsing is in its own try/catch so a non-multipart body returns 400 instead of 500
+  try {
+    const body = await context.req.parseBody();
+    file = body["file"];
+  } catch {
+    return context.json({ error: "Expected a multipart form body" }, 400);
+  }
+  if (!(file instanceof File)) {
+    return context.json({ error: "Missing image file" }, 400);
+  }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return context.json({ error: "Image must be JPG or PNG" }, 400);
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return context.json({ error: "Image must be 3.75 MB or smaller" }, 400);
+  }
+  try {
+    const data = Buffer.from(await file.arrayBuffer()).toString("base64");
+    const draft = await extractExercise(data, file.type as ImageMediaType);
+    return context.json(draft);
+  } catch (e) {
+    if (e instanceof ExtractionRefusedError) {
+      return context.json({ error: e.message }, 422);
+    } else if (
+      e instanceof ExtractionFailedError ||
+      e instanceof Anthropic.APIError
+    ) {
+      logger.error(`POST /exercises/extract failed: ${e}`);
+      return context.json({ error: "Extraction failed" }, 502);
+    }
+    logger.error(`POST /exercises/extract failed: ${e}`);
     return context.json({ error: "Internal server error" }, 500);
   }
 });

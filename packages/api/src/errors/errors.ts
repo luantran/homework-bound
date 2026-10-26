@@ -18,3 +18,17 @@ export class WorksheetNotFoundError extends Error {
     this.name = "WorksheetNotFoundError";
   }
 }
+
+export class ExtractionRefusedError extends Error {
+  constructor(message = "The model declined to extract this image") {
+    super(message);
+    this.name = "ExtractionRefusedError";
+  }
+}
+
+export class ExtractionFailedError extends Error {
+  constructor(message = "Could not extract an exercise from this image") {
+    super(message);
+    this.name = "ExtractionFailedError";
+  }
+}
