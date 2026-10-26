@@ -119,14 +119,27 @@ export default function ExerciseRightPanel({ questions, setQuestions }: Props) {
                   borderRadius="md"
                   justify="space-between"
                 >
-                  <Stack gap={0} flex={1}>
-                    <Text fontSize="sm" fontWeight="medium">
-                      {q.prompt}
+                  <HStack flex={1} align="flex-start" gap={2}>
+                    {/* fixed width keeps prompts aligned past question 9 */}
+                    <Text
+                      w="28px"
+                      flexShrink={0}
+                      fontSize="sm"
+                      fontWeight="medium"
+                      color="gray.500"
+                      textAlign="right"
+                    >
+                      {i + 1}.
                     </Text>
-                    <Text fontSize="xs" color="gray.500">
-                      Answer: {q.answer}
-                    </Text>
-                  </Stack>
+                    <Stack gap={0} flex={1}>
+                      <Text fontSize="sm" fontWeight="medium">
+                        {q.prompt}
+                      </Text>
+                      <Text fontSize="xs" color="gray.500">
+                        Answer: {q.answer}
+                      </Text>
+                    </Stack>
+                  </HStack>
                   <HStack>
                     <Badge>{q.type}</Badge>
                     <HStack ml={4}>
@@ -156,6 +169,10 @@ export default function ExerciseRightPanel({ questions, setQuestions }: Props) {
               <QuestionDialog
                 isOpen={isDialogOpen}
                 isEditMode={editIndex !== null}
+                questionNumber={
+                  editIndex !== null ? editIndex + 1 : questions.length + 1
+                }
+                totalQuestions={questions.length}
                 form={form}
                 setForm={setForm}
                 onClose={() => setIsDialogOpen(false)}

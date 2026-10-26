@@ -715,6 +715,9 @@ test.describe("Exercises page", () => {
       const questionDialog = page.getByRole("dialog", {
         name: "Edit Question",
       });
+      await expect(
+        questionDialog.getByRole("heading", { name: "Edit Question 1 of 2" }),
+      ).toBeVisible();
       // radio inputs are visually hidden — force the click
       await questionDialog
         .locator('input[type="radio"][value="B"]')
@@ -725,6 +728,9 @@ test.describe("Exercises page", () => {
       await page.getByRole("menuitem", { name: "Confirm & next" }).click();
 
       // dialog stays open and moves on to the second question
+      await expect(
+        questionDialog.getByRole("heading", { name: "Edit Question 2 of 2" }),
+      ).toBeVisible();
       await expect(
         questionDialog.getByTestId("input-question-prompt"),
       ).toHaveValue("relire, 3e pers. plur.");

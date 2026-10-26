@@ -52,6 +52,8 @@ const saveConfirmMode = (mode: ConfirmMode) => {
 type Props = {
   isOpen: boolean;
   isEditMode: boolean;
+  questionNumber: number;
+  totalQuestions: number;
   form: Partial<CreateQuestion>;
   setForm: (form: Partial<CreateQuestion>) => void;
   onClose: () => void;
@@ -63,6 +65,8 @@ type Props = {
 export default function QuestionDialog({
   isOpen,
   isEditMode,
+  questionNumber,
+  totalQuestions,
   form,
   setForm,
   onClose,
@@ -111,7 +115,9 @@ export default function QuestionDialog({
           <Dialog.Content>
             <Dialog.Header py={3}>
               <Dialog.Title>
-                {isEditMode ? "Edit Question" : "New Question"}
+                {isEditMode
+                  ? `Edit Question ${questionNumber} of ${totalQuestions}`
+                  : `New Question ${questionNumber}`}
               </Dialog.Title>
               <Dialog.CloseTrigger asChild>
                 <CloseButton size="sm" />
