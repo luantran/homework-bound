@@ -6,16 +6,18 @@ import {
 } from "@homework-bound/shared";
 import { ExtractionFailedError, ExtractionRefusedError } from "../errors";
 
-const MODEL = "claude-haiku-4-5";
+const MODEL = "claude-sonnet-5-5";
 
 const SYSTEM_PROMPT = `You extract French language exercises from scanned textbook pages for a teacher's exercise bank.
 
-- Keep all exercise text in the original French, exactly as printed. Do not translate or correct it.
-- Extract only multiple-choice questions (type "mcq"). Key the options A to E in the order they appear on the page.
-- Set "answer" to the letter of the correct option only if the page shows an answer key or marks the correct choice. Otherwise set it to an empty string. Never guess.
-- Put the instructions that apply to the whole exercise in "prompt", and any reading passage or example text in "context".
+- Transcribe every word exactly as printed, letter by letter, in the original French. Do not translate, correct, or guess at spellings; these are often deliberately wrong conjugations, so a misspelled option may be intentional.
+- The exercise-level "prompt" is the instruction printed once for the whole exercise (e.g. "Encercle la bonne réponse."). Always include it when the page prints one; it belongs only at the exercise level, not in the questions.
+- Each question's "prompt" is that item's own label as printed next to it, without its letter or number (e.g. "finir, 1re pers. plur."). Never leave it empty or reuse the exercise instruction.
+- Put any reading passage or example text in the exercise-level "context".
+- Extract only multiple-choice questions (type "mcq"). Key the options A to E in the exact left-to-right order they are printed for that item.
+- Set "answer" to the letter of the correct option only if the page shows an answer key or marks the correct choice. Otherwise set it to an empty string. Never work out the answer yourself.
 - Choose "category" from grammar, conjugaison, or reading based on what the exercise practices.
-- Leave out fields the page does not show, such as levels and tags.`;
+- Omit "hint" unless one is printed on the page.`;
 
 export type ImageMediaType = "image/jpeg" | "image/png";
 
@@ -45,7 +47,10 @@ export async function extractExercise(
                 data: imageBase64,
               },
             },
-            { type: "text", text: "Extract the exercise on this page." },
+            {
+              type: "text",
+              text: "Extract the exercise on this page, including the instruction printed at the top.",
+            },
           ],
         },
       ],
@@ -62,5 +67,7 @@ export async function extractExercise(
   if (response.stop_reason === "max_tokens" || !response.parsed_output) {
     throw new ExtractionFailedError();
   }
-  return response.parsed_output;
+  // Levels and tags are the teacher's call and never printed on a page, so drop whatever the model filled in
+  const { category, prompt, context, questions } = response.parsed_output;
+  return { category, prompt, context, questions };
 }
